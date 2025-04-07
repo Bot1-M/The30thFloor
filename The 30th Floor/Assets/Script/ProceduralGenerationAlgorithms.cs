@@ -113,7 +113,16 @@ public static class Direction2D
     private static Vector2Int Left = new Vector2Int(-1, 0);
     private static Vector2Int Right = new Vector2Int(1, 0);
 
-    public static List<Vector2Int> cardinalDirectionsList = new List<Vector2Int> { Up, Down, Left, Right };
+    public static List<Vector2Int> cardinalDirectionsList = new List<Vector2Int> { Up, Right, Down, Left, };
+
+    private static Vector2Int Up_right = new Vector2Int(1, 1);
+    private static Vector2Int Down_right = new Vector2Int(1, -1);
+    private static Vector2Int Donw_left = new Vector2Int(-1, -1);
+    private static Vector2Int Up_left = new Vector2Int(-1, 1);
+
+    public static List<Vector2Int> diagonalDirectionsList = new List<Vector2Int> { Up_right, Down_right, Donw_left, Up_left };
+
+    public static List<Vector2Int> eightDirectionsList = new List<Vector2Int> { Up, Up_right, Right, Down_right, Down, Donw_left, Left, Up_left };
 
     public static Vector2Int GetRandomCardinalDirection()
     {
