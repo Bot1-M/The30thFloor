@@ -1,18 +1,23 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
 {
+    public HashSet<Vector2Int> FloorPositions { get; private set; }
+    public List<DungeonRoom> Rooms { get; private set; } = new();
+    public HashSet<Vector2Int> RoomPositions => new(Rooms.SelectMany(r => r.Tiles));
+    public HashSet<Vector2Int> CorridorPositions { get; private set; }
+
+    public event Action OnDungeonGenerated;
+
     [SerializeField]
-    private int corridorLength = 14, corridorCount = 5;
+    private int corridorLength = 25, corridorCount = 7;
 
     [SerializeField]
     [Range(0.1f, 1)]
-    private float roomPercent ;
+    private float roomPercent = 1f;
 
     protected override void RunProceduralGeneration()
     {
@@ -25,11 +30,8 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         HashSet<Vector2Int> potentialRoomPositions = new HashSet<Vector2Int>();
 
         List<List<Vector2Int>> corridors = CreateCorridors(floorPositions, potentialRoomPositions);
-
         HashSet<Vector2Int> roomPositions = CreateRooms(potentialRoomPositions);
-
         List<Vector2Int> deadEnds = FindAllDeadEnds(floorPositions);
-
         CreateRoomsAtDeadEnd(deadEnds, roomPositions);
 
         floorPositions.UnionWith(roomPositions);
@@ -38,12 +40,21 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         {
             corridors[i] = IncreaseCorridorSizeByThree(corridors[i]);
             floorPositions.UnionWith(corridors[i]);
-
         }
+
+        Rooms = GetRoomClusters(roomPositions);
+        CorridorPositions = new HashSet<Vector2Int>();
+        foreach (var corridor in corridors)
+        {
+            CorridorPositions.UnionWith(corridor);
+        }
+        FloorPositions = new HashSet<Vector2Int>();
+        FloorPositions.UnionWith(RoomPositions);
+        FloorPositions.UnionWith(CorridorPositions);
 
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
-
+        OnDungeonGenerated?.Invoke();
     }
 
     private List<Vector2Int> IncreaseCorridorSizeByThree(List<Vector2Int> corridor)
@@ -66,7 +77,7 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
     {
         foreach (var position in deadEnds)
         {
-            if (roomFloors.Contains(position) == false)
+            if (!roomFloors.Contains(position))
             {
                 var room = RunRandomWalk(randomWalkParameters, position);
                 roomFloors.UnionWith(room);
@@ -84,7 +95,6 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
             {
                 if (floorPositions.Contains(position + direction))
                     neighboursCount++;
-
             }
             if (neighboursCount == 1)
                 deadEnds.Add(position);
@@ -122,6 +132,44 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
             floorPositions.UnionWith(corridor);
         }
         return corridors;
+    }
+
+    public List<DungeonRoom> GetRoomClusters(HashSet<Vector2Int> roomPositions)
+    {
+        List<DungeonRoom> clusters = new List<DungeonRoom>();
+        HashSet<Vector2Int> unvisited = new HashSet<Vector2Int>(roomPositions);
+
+        int id = 0;
+
+        while (unvisited.Count > 0)
+        {
+            Vector2Int start = unvisited.First();
+            HashSet<Vector2Int> cluster = new HashSet<Vector2Int>();
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            queue.Enqueue(start);
+            cluster.Add(start);
+            unvisited.Remove(start);
+
+            while (queue.Count > 0)
+            {
+                Vector2Int pos = queue.Dequeue();
+                foreach (var dir in Direction2D.cardinalDirectionsList)
+                {
+                    Vector2Int neighbor = pos + dir;
+                    if (unvisited.Contains(neighbor))
+                    {
+                        queue.Enqueue(neighbor);
+                        cluster.Add(neighbor);
+                        unvisited.Remove(neighbor);
+                    }
+                }
+            }
+
+            clusters.Add(new DungeonRoom(id, cluster));
+            id++;
+        }
+
+        return clusters;
     }
 
 }
