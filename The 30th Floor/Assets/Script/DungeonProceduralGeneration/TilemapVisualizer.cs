@@ -70,7 +70,6 @@ public class TilemapVisualizer : MonoBehaviour
 
     internal void PaintSingleCornerWall(Vector2Int position, string binaryType)
     {
-        Debug.Log(position + " type " + binaryType);
         int typeAsInt = Convert.ToInt32(binaryType, 2);
         TileBase tile = null;
         if (WallTypesHelper.wallInnerCornerDownLeft.Contains(typeAsInt))

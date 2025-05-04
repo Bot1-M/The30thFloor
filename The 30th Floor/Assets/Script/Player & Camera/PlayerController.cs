@@ -18,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
 
     bool facingRight = true; // Boolean to check if the player is facing right
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public void Init()
     {
@@ -27,9 +26,10 @@ public class PlayerMovement : MonoBehaviour
         SpawnPlayer(); // Call the SpawnPlayer method to set the initial position of the player
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (rb == null) return;
+
         horizontalInput = Input.GetAxis("Horizontal"); // Get horizontal input from the keyboard (A/D or Left/Right Arrow keys)
         verticalInput = Input.GetAxis("Vertical"); // Get vertical input from the keyboard (W/S or Up/Down Arrow keys)
         rb.linearVelocity = moveInput * moveSpeed; // Set the horizontal velocity based on input and speed
