@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -5,7 +6,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public CorridorFirstDungeonGenerator dungeonGenerator;
-    public PlayerMovement player;
+    public PlayerController player;
 
     private void Awake()
     {
@@ -17,20 +18,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject); 
+            Destroy(gameObject);
         }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        dungeonGenerator.GenerateDungeon(); 
+        dungeonGenerator.GenerateDungeon();
         player.Init();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

@@ -1,22 +1,33 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
+using System;
+using Random = UnityEngine.Random;
 
 public class BoardManager : MonoBehaviour
 {
-    public enum CellType { Floor, WallTop, WallBottom, WallLeft, WallRight, CornerBottomLeft, CornerBottomRight }
+    public enum CellType
+    {
+        Floor,
+        WallTop,
+        WallBottom,
+        WallLeft,
+        WallRight,
+        CornerBottomLeft,
+        CornerBottomRight
+    }
 
     public class CellData
     {
         public bool isWalkable;
         public bool isOccupied;
         public GameObject occupant;
-        public CellType cellType;
     }
 
     private Tilemap tilemap;
-    [SerializeField] private Tilemap overlayTilemap; // Tilemap adicional para superponer el objetivo o decoraciones
-    private Dictionary<Vector2Int, CellData> gridData = new();
+    [SerializeField] private Tilemap overlayTilemap;
+
+    private CellData[,] boardData;
 
     [Header("Grid Settings")]
     public int width = 18;
@@ -26,10 +37,14 @@ public class BoardManager : MonoBehaviour
     public Tile[] groundTiles;
     public Tile[] topWallTiles, rigthWallTiles, leftWallTiles, bottomWallTiles;
     public Tile[] bottomCornerWallTiles;
-    public Tile goalTile;
-    public List<Tile> decorationTile; // Antorchas u otras decoraciones
 
-    void Start()
+    public List<Tile> decorationTile;
+
+    public bool IsReady { get; private set; }
+
+    public event System.Action OnBoardReady;
+
+    public void Init()
     {
         tilemap = GetComponentInChildren<Tilemap>();
         GenerateBoard();
@@ -39,123 +54,143 @@ public class BoardManager : MonoBehaviour
     {
         tilemap.ClearAllTiles();
         overlayTilemap.ClearAllTiles();
-        gridData.Clear();
+        boardData = new CellData[width, height];
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                Vector2Int pos = new(x, y);
-                CellData cell = CreateCellData(pos);
-                gridData[pos] = cell;
+                Tile tile = null;
+                bool walkable = true;
 
-                // Pintar tile base si no es WallTop (se gestiona aparte)
-                if (cell.cellType != CellType.WallTop)
+                if (x == 0 && y == 0)
                 {
-                    tilemap.SetTile(new Vector3Int(x, y, 0), GetTileForCell(pos, cell));
+                    tile = bottomCornerWallTiles[0];
+                    walkable = false;
+                }
+                else if (x == width - 1 && y == 0)
+                {
+                    tile = bottomCornerWallTiles[1];
+                    walkable = false;
+                }
+                else if (y == height - 1 && x == 0)
+                {
+                    tile = leftWallTiles[Random.Range(0, leftWallTiles.Length)];
+                    walkable = false;
+                }
+                else if (y == height - 1 && x == width - 1)
+                {
+                    tile = rigthWallTiles[Random.Range(0, rigthWallTiles.Length)];
+                    walkable = false;
+                }
+                else if (y == height - 1)
+                {
+                    tile = topWallTiles[Random.Range(0, topWallTiles.Length)];
+                    walkable = false;
+
+                    if (decorationTile.Count > 0 && Random.Range(0, 10) < 4)
+                    {
+                        int decorationTileIndex = Random.Range(0, decorationTile.Count);
+                        overlayTilemap.SetTile(new Vector3Int(x, y, 0), decorationTile[decorationTileIndex]);
+                        decorationTile.RemoveAt(decorationTileIndex);
+                    }
+                }
+                else if (y == 0)
+                {
+                    tile = bottomWallTiles[Random.Range(0, bottomWallTiles.Length)];
+                    walkable = false;
+                }
+                else if (x == 0)
+                {
+                    tile = leftWallTiles[Random.Range(0, leftWallTiles.Length)];
+                    walkable = false;
+                }
+                else if (x == width - 1)
+                {
+                    tile = rigthWallTiles[Random.Range(0, rigthWallTiles.Length)];
+                    walkable = false;
+                }
+                else
+                {
+                    tile = groundTiles[Random.Range(0, groundTiles.Length)];
+                    walkable = true;
+                }
+
+                boardData[x, y] = new CellData
+                {
+                    isWalkable = walkable,
+                    isOccupied = false,
+                    occupant = null
+                };
+
+                tilemap.SetTile(new Vector3Int(x, y, 0), tile);
+            }
+        }
+
+        OnBoardReady?.Invoke();
+        IsReady = true;
+    }
+
+    public CellData GetCellData(Vector2Int pos)
+    {
+        if (IsInsideBoard(pos))
+            return boardData[pos.x, pos.y];
+
+        Debug.LogWarning($"GetCellData: posición fuera de límites {pos}");
+        return null;
+    }
+
+    public bool IsWalkable(Vector2Int pos)
+    {
+        return IsInsideBoard(pos) && boardData[pos.x, pos.y].isWalkable;
+    }
+
+    public void SetOccupied(Vector2Int pos, GameObject occupant)
+    {
+        if (IsInsideBoard(pos))
+        {
+            boardData[pos.x, pos.y].isOccupied = occupant != null;
+            boardData[pos.x, pos.y].occupant = occupant;
+        }
+    }
+
+    public Vector3 GridToWorldPosition(Vector2Int gridPosition)
+    {
+        return tilemap.CellToWorld(new Vector3Int(gridPosition.x, gridPosition.y, 0));
+    }
+
+    public List<Vector2Int> GetFreeCellsInRange(int minX, int maxX, int minY, int maxY)
+    {
+        List<Vector2Int> result = new();
+
+        for (int x = maxX; x >= minX; x--)
+        {
+            for (int y = minY; y <= maxY; y++)
+            {
+                if (!IsInsideBoard(x, y)) continue;
+
+                var cell = boardData[x, y];
+                if (cell.isWalkable && !cell.isOccupied)
+                {
+                    result.Add(new Vector2Int(x, y));
                 }
             }
         }
 
-        // Superponer el objetivo visual encima de la celda (14, 6)
-        Vector3Int goalPos = new Vector3Int(14, 6, 0);
-        overlayTilemap.SetTile(goalPos, goalTile);
+        return result;
     }
 
-    private CellData CreateCellData(Vector2Int pos)
+    private bool IsInsideBoard(Vector2Int pos) => IsInsideBoard(pos.x, pos.y);
+
+    private bool IsInsideBoard(int x, int y)
     {
-        CellType type;
-        bool walkable = true;
-
-        if (pos.y == 0 && pos.x == 0)
-        {
-            type = CellType.CornerBottomLeft;
-            walkable = false;
-        }
-        else if (pos.y == 0 && pos.x == width - 1)
-        {
-            type = CellType.CornerBottomRight;
-            walkable = false;
-        }
-        else if (pos.y == height - 1 && pos.x == 0)
-        {
-            type = CellType.WallLeft;
-            walkable = false;
-        }
-        else if (pos.y == height - 1 && pos.x == width - 1)
-        {
-            type = CellType.WallRight;
-            walkable = false;
-        }
-        else if (pos.y == height - 1)
-        {
-            type = CellType.WallTop;
-            walkable = false;
-
-            // Pintar pared superior
-            tilemap.SetTile(new Vector3Int(pos.x, pos.y, 0), topWallTiles[Random.Range(0, topWallTiles.Length)]);
-
-            if (decorationTile.Count > 0 && Random.Range(0, 10) < 4)
-            {
-                int decorationTileIndex = Random.Range(0, decorationTile.Count);
-                overlayTilemap.SetTile(new Vector3Int(pos.x, pos.y, 0), decorationTile[decorationTileIndex]);
-                decorationTile.RemoveAt(decorationTileIndex);
-            }
-        }
-        else if (pos.y == 0)
-        {
-            type = CellType.WallBottom;
-            walkable = false;
-        }
-        else if (pos.x == 0)
-        {
-            type = CellType.WallLeft;
-            walkable = false;
-        }
-        else if (pos.x == width - 1)
-        {
-            type = CellType.WallRight;
-            walkable = false;
-        }
-        else
-        {
-            type = CellType.Floor;
-        }
-
-        return new CellData
-        {
-            cellType = type,
-            isWalkable = walkable,
-            isOccupied = false,
-            occupant = null
-        };
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    private Tile GetTileForCell(Vector2Int pos, CellData cell)
+    public Tilemap GetTilemap()
     {
-        return cell.cellType switch
-        {
-            CellType.Floor => groundTiles[Random.Range(0, groundTiles.Length)],
-            CellType.WallTop => null,
-            CellType.WallBottom => bottomWallTiles[Random.Range(0, bottomWallTiles.Length)],
-            CellType.WallLeft => leftWallTiles[Random.Range(0, leftWallTiles.Length)],
-            CellType.WallRight => rigthWallTiles[Random.Range(0, rigthWallTiles.Length)],
-            CellType.CornerBottomLeft => bottomCornerWallTiles[0],
-            CellType.CornerBottomRight => bottomCornerWallTiles[1],
-            _ => null,
-        };
+        return tilemap;
     }
 
-    public bool IsWalkable(Vector2Int pos) => gridData.ContainsKey(pos) && gridData[pos].isWalkable;
 
-    public void SetOccupied(Vector2Int pos, GameObject occupant)
-    {
-        if (gridData.ContainsKey(pos))
-        {
-            gridData[pos].isOccupied = occupant != null;
-            gridData[pos].occupant = occupant;
-        }
-    }
-
-    public CellData GetCellData(Vector2Int pos) => gridData.ContainsKey(pos) ? gridData[pos] : null;
 }

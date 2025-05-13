@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 
 public class PrefabsSpawner : MonoBehaviour
 {
+
     [Header("References")]
     [SerializeField] private CorridorFirstDungeonGenerator dungeonGenerator;
 
@@ -55,14 +56,24 @@ public class PrefabsSpawner : MonoBehaviour
 
         var mainRoom = GetClusterContainingPosition(roomPositions, Vector2Int.zero);
         var validEnemyPositions = floorPositions.Except(mainRoom).ToHashSet();
-       
+
         foreach (var room in dungeonGenerator.Rooms)
         {
             if (!room.Tiles.Contains(Vector2Int.zero)) // evitar sala de inicio
                 SpawnEnemiesInRoom(enemyPrefabs, room, maxEnemies, occupiedPositions);
+
+        }
+        foreach (var room in dungeonGenerator.Rooms)
+        {
+            Debug.Log("EL CENTRO DE LA ROOM " + room.Center);
+            Debug.Log("LOS ENEMIGOS DE LA ROOM " + room.SpawnedEnemies.Count);
+            Debug.Log("EL ID DEL ROOM" + room.ID);
+
         }
 
         SpawnTorchesInRooms(occupiedPositions);
+
+
     }
 
     private void SpawnTorchesInRooms(List<Vector2Int> occupied)
@@ -123,21 +134,27 @@ public class PrefabsSpawner : MonoBehaviour
         var positions = clusterFiltered;
         Shuffle(positions);
 
+        // Decide aleatoriamente cuántos enemigos se van a instanciar en esta sala
+        int enemiesToSpawn = Random.Range(0, maxCount + 1); // incluye 0 y maxCount
         int spawned = 0;
 
         foreach (var pos in positions)
         {
-            if (spawned >= maxCount) break;
-            if (Random.value > spawnPercent) continue;
+            if (spawned >= enemiesToSpawn) break;
             if (!HasClearanceAround(pos)) continue;
             if (!HasItemSpacing(pos, occupied, itemSpacingRadius)) continue;
 
             var go = Instantiate(prefabs[Random.Range(0, prefabs.Count)], new Vector3(pos.x, pos.y, 0f), Quaternion.identity);
-            room.AddObject(go);
+            room.AddEnemy(go);
             occupied.Add(pos);
             spawned++;
         }
+
+        Debug.Log($"Spawneados {spawned} enemigos en la sala {room.ID}");
     }
+
+
+
 
     private void SpawnItemsInRoom(List<GameObject> prefabs, DungeonRoom room, int maxCount, List<Vector2Int> occupied)
     {
@@ -250,3 +267,7 @@ public class PrefabsSpawner : MonoBehaviour
         }
     }
 }
+
+
+
+

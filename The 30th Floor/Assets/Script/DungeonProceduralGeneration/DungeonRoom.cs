@@ -13,6 +13,8 @@ public class DungeonRoom
 
     public List<GameObject> SpawnedObjects { get; private set; } = new();
 
+    public List<GameObject> SpawnedEnemies { get; private set; } = new();
+
     public DungeonRoom(int id, HashSet<Vector2Int> tiles)
     {
         ID = id;
@@ -42,6 +44,17 @@ public class DungeonRoom
             if (obj != null) GameObject.Destroy(obj);
         }
         SpawnedObjects.Clear();
+        foreach (var enemy in SpawnedEnemies)
+        {
+            if (enemy != null) GameObject.Destroy(enemy);
+        }
+        SpawnedEnemies.Clear();
+    }
+
+    public void AddEnemy(GameObject enemy)
+    {
+        SpawnedEnemies.Add(enemy);
+        SpawnedObjects.Add(enemy);
     }
 }
 

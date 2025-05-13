@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Slime
   - Reaper
+  - Board
   layers:
   - Default
   - TransparentFX

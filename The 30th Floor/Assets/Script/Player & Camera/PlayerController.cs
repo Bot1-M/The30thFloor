@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
 
     [SerializeField]
@@ -18,7 +18,10 @@ public class PlayerMovement : MonoBehaviour
 
     bool facingRight = true; // Boolean to check if the player is facing right
 
-
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
     public void Init()
     {
         rb = GetComponent<Rigidbody2D>(); // Get the Rigidbody2D component attached to the player GameObject
@@ -77,5 +80,5 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
-    
+
 }
