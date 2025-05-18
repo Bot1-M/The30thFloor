@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Dungeon_Tileset_69
+  m_Name: pruebaTileSeletion
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 1348811928, guid: bc8a84cec975ea94d935ac86b35e3815, type: 3}
-  m_Color: {r: 0.18396229, g: 0.76200914, b: 1, a: 1}
+  m_Sprite: {fileID: 7560591164928645431, guid: 52844aa73f7bbfc4ca0d58bbe7aaf5e0, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
     e01: 0

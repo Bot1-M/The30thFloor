@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 public class FightingSceneManager : MonoBehaviour
 {
     public static FightingSceneManager Instance { get; private set; }
@@ -12,9 +13,22 @@ public class FightingSceneManager : MonoBehaviour
 
     private int turnNumber = 0;
 
+    public UIDocument uiDocument;
+    private Label lbSpeed;
+    private Label lbAttack;
+    private Label lbDefense;
+    private Label lbHealth;
+    private Label lbMap;
+    private Label lbPoints;
+
+    public HealthBar healthBar;
+
+
     private void Awake()
     {
-        if(Instance != null)
+        Debug.Log("FightingSceneManager Awake() Principio");
+
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
@@ -23,19 +37,22 @@ public class FightingSceneManager : MonoBehaviour
         Instance = this;
 
         player = GameObject.FindWithTag("Player");
-                
+        Debug.Log("FightingSceneManager Awake FIN()");
+
+
     }
 
     void Start()
     {
         // AQUII SI ENTRA Y NADA EN NULL   
+        Debug.Log("FightingSceneManager Start () Principio");
 
         turnManager = new TurnManager();
 
         turnManager.OnTick += OnTurnHappen;
 
         boardManager.Init();
-        
+
 
         if (player == null || boardManager == null)
         {
@@ -52,25 +69,22 @@ public class FightingSceneManager : MonoBehaviour
             boardManager.OnBoardReady += SpawnPlayer;
         }
 
-        SceneManager.sceneLoaded += OnSceneLoaded;
 
         // Desactivar controller de exploración aquí si hace falta
 
-    }
+        var playerData = player.GetComponent<PlayerManager>().Data;
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name == "Fighting")
-        {
-            var spawnPoint = GameObject.Find("PlayerSpawnCombat");
-            if (spawnPoint != null)
-            {
-                transform.position = spawnPoint.transform.position;
-            }
-        }
+        healthBar.SetMaxHealth(playerData.maxHealth);
+        healthBar.SetHealth(playerData.currentHealth);
 
+        SetUpUIDocument();
+        UpdateUI();
+
+        Debug.Log("FightingSceneManager Start FIN()");
 
     }
+
+
 
     private void SpawnPlayer()
     {
@@ -78,7 +92,7 @@ public class FightingSceneManager : MonoBehaviour
         var tactical = player.GetComponent<PlayerTacticalController>();
         if (tactical != null)
         {
-            tactical.Spawn(boardManager, new Vector2Int(2, 2));
+            tactical.Spawn(boardManager, new Vector2Int(1, 1));
         }
         else
         {
@@ -91,6 +105,45 @@ public class FightingSceneManager : MonoBehaviour
         turnNumber += 1;
         Debug.Log("Turn Number : " + turnNumber);
     }
+
+    private void SetUpUIDocument()
+    {
+        if (uiDocument == null)
+        {
+            Debug.LogError("UIDocument no asignado.");
+            return;
+        }
+        lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
+        lbAttack = uiDocument.rootVisualElement.Q<Label>("lbAttack");
+        lbDefense = uiDocument.rootVisualElement.Q<Label>("lbDefense");
+        lbSpeed = uiDocument.rootVisualElement.Q<Label>("lbSpeed");
+        lbMap = uiDocument.rootVisualElement.Q<Label>("lbMap");
+        lbPoints = uiDocument.rootVisualElement.Q<Label>("lbFightingPoints");
+    }
+
+    public void UpdateUI()
+    {
+        if (uiDocument == null)
+        {
+            Debug.LogError("UIDocument no asignado.");
+            return;
+        }
+        if (player == null)
+        {
+            Debug.LogError("Player no encontrado.");
+            return;
+        }
+        var playerData = player.GetComponent<PlayerManager>().Data;
+        var playerTactical = player.GetComponent<PlayerTacticalController>();
+        lbHealth.text = playerData.currentHealth + "/" + playerData.maxHealth;
+        lbAttack.text = playerData.attack.ToString();
+        lbDefense.text = playerData.defense.ToString();
+        lbSpeed.text = playerData.spaceMovement.ToString();
+        lbMap.text = playerData.level.ToString();
+        lbPoints.text = playerTactical.fightPoints.ToString();
+    }
+
+
 
 }
 

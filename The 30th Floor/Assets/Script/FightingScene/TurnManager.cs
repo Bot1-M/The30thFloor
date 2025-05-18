@@ -17,4 +17,5 @@ public class TurnManager
         Debug.Log("Current turn count : " + m_TurnCount);
         OnTick?.Invoke();
     }
+
 }

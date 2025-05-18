@@ -8,9 +8,9 @@ public class PlayerManager : MonoBehaviour
 
     public PlayerData Data { get; private set; } = new PlayerData();
 
-    private PlayerInput playerInput;
-    private PlayerController explorationController;
-    private PlayerTacticalController tacticalController;
+    public PlayerInput playerInput;
+    public PlayerController explorationController;
+    public PlayerTacticalController tacticalController;
 
     void Awake()
     {

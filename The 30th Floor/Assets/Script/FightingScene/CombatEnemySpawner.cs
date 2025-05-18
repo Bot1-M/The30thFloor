@@ -63,8 +63,15 @@ public class CombatEnemySpawner : MonoBehaviour
             var instanceData = new EnemyInstanceData(selected, combatLevel);
             instanceData.SetGridPosition(position);
 
-            GameObject go = Instantiate(selected.prefab, board.GridToWorldPosition(position), Quaternion.identity);
+            GameObject go = Instantiate(selected.prefab, board.GridToWorldCenter(position), Quaternion.identity);
             board.SetOccupied(position, go);
+
+            var controller = go.GetComponent<EnemyTacticalController>();
+            if (controller != null)
+            {
+                controller.Init(position, instanceData.currentHealth, instanceData.attack);
+            }
+
         }
     }
 

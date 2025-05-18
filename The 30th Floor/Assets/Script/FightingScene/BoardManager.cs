@@ -154,11 +154,6 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    public Vector3 GridToWorldPosition(Vector2Int gridPosition)
-    {
-        return tilemap.CellToWorld(new Vector3Int(gridPosition.x, gridPosition.y, 0));
-    }
-
     public List<Vector2Int> GetFreeCellsInRange(int minX, int maxX, int minY, int maxY)
     {
         List<Vector2Int> result = new();
@@ -190,6 +185,24 @@ public class BoardManager : MonoBehaviour
     public Tilemap GetTilemap()
     {
         return tilemap;
+    }
+
+    public void ShowOverlay(List<Vector2Int> cells, Tile tile)
+    {
+        foreach (var cell in cells)
+        {
+            overlayTilemap.SetTile(new Vector3Int(cell.x, cell.y, 0), tile);
+        }
+    }
+
+    public void ClearOverlay()
+    {
+        overlayTilemap.ClearAllTiles();
+    }
+
+    public Vector3 GridToWorldCenter(Vector2Int gridPosition)
+    {
+        return tilemap.GetCellCenterWorld(new Vector3Int(gridPosition.x, gridPosition.y, 0));
     }
 
 
