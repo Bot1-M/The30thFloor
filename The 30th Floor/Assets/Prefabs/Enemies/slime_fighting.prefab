@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 745332980097617653}
   m_Layer: 0
   m_Name: slime_fighting
-  m_TagString: Slime
+  m_TagString: EnemyFighting
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

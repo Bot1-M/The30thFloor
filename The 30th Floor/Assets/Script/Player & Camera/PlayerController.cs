@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
 
     float horizontalInput; // Variable to store horizontal input
-    float verticalInput; // Variable to store vertical input
 
     bool facingRight = true; // Boolean to check if the player is facing right
 
@@ -34,9 +33,10 @@ public class PlayerController : MonoBehaviour
         if (rb == null) return;
 
         horizontalInput = Input.GetAxis("Horizontal"); // Get horizontal input from the keyboard (A/D or Left/Right Arrow keys)
-        verticalInput = Input.GetAxis("Vertical"); // Get vertical input from the keyboard (W/S or Up/Down Arrow keys)
         rb.linearVelocity = moveInput * moveSpeed; // Set the horizontal velocity based on input and speed
         MirrorPlayer();
+
+
     }
 
     public void Move(InputAction.CallbackContext context)

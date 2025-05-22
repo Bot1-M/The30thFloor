@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 using static BoardManager;
 
-public class PlayerTacticalController : MonoBehaviour
+public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 {
     public int fightPoints = 0;
     public Vector2Int Cell => cellPos;
@@ -35,6 +36,10 @@ public class PlayerTacticalController : MonoBehaviour
     private Animator animator;
 
     private bool facingRight = true;
+
+    //private bool boardIsReady = false;
+
+    private Action onTurnComplete;
 
     void Update()
     {
@@ -70,6 +75,9 @@ public class PlayerTacticalController : MonoBehaviour
 
     public void MoveTo(Vector2Int cell, bool immediate = false)
     {
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
         cellPos = cell;
         Vector3Int cell3D = new Vector3Int(cell.x, cell.y, 0);
         Vector3 targetWorldPos = board.GetTilemap().GetCellCenterWorld(cell3D);
@@ -79,6 +87,8 @@ public class PlayerTacticalController : MonoBehaviour
             isMoving = false;
             transform.position = targetWorldPos;
             if (animator != null) animator.SetBool("isWalking", false);
+            Debug.Log("isWalking: " + animator.GetBool("isWalking"));
+
 
         }
         else
@@ -87,12 +97,14 @@ public class PlayerTacticalController : MonoBehaviour
             isMoving = true;
             moveTarget = targetWorldPos;
             if (animator != null) animator.SetBool("isWalking", true);
+            Debug.Log("isWalking: " + animator.GetBool("isWalking"));
+
         }
 
         Debug.Log($" MoveTo: {cell} {(immediate ? "[instant]" : "[smooth]")}");
     }
 
-    
+
 
     private void HandleMovementTo(Vector2Int target)
     {
@@ -119,7 +131,9 @@ public class PlayerTacticalController : MonoBehaviour
         board.ClearOverlay();
         StartTilePathMovement(path);
         cellPos = target;
-        FightingSceneManager.Instance.turnManager.Tick();
+        //FightingSceneManager.Instance.turnManager.Tick();
+        StartCoroutine(ExecuteMovementThenEndTurn(path));
+
     }
 
     private void TryHandleMouseClick()
@@ -209,16 +223,27 @@ public class PlayerTacticalController : MonoBehaviour
     public void Spawn(BoardManager boardManager, Vector2Int cell)
     {
         SetHealthBar();
-        animator = GetComponent<Animator>();
-
-        if (boardManager == null)
-        {
-            Debug.LogError("BoardManager pasado a Spawn es null.");
-            return;
-        }
 
         board = boardManager;
         MoveTo(cell, true);
+        animator = GetComponent<Animator>();
+
+        if (board.IsReady)
+        {
+            //boardIsReady = true;
+            ShowMovementRange();
+        }
+        else
+        {
+            board.OnBoardReady += OnBoardReadyForPlayer;
+        }
+    }
+
+    private void OnBoardReadyForPlayer()
+    {
+        board.OnBoardReady -= OnBoardReadyForPlayer;
+        //boardIsReady = true;
+        ShowMovementRange();
     }
 
     private void SetHealthBar()
@@ -226,17 +251,18 @@ public class PlayerTacticalController : MonoBehaviour
         healthBar = FightingSceneManager.Instance.healthBar;
     }
 
-    private void OnTurnStarted()
-    {
-        hasActed = false;
-        StartCoroutine(DeferredShowMovementRange());
-    }
+    //private void OnTurnStarted()
+    //{
+    //    hasActed = false;
+    //    if (boardIsReady)
+    //        StartCoroutine(DeferredShowMovementRange());
+    //}
 
-    private IEnumerator DeferredShowMovementRange()
-    {
-        yield return null; // espera al siguiente frame
-        ShowMovementRange();
-    }
+    //private IEnumerator DeferredShowMovementRange()
+    //{
+    //    yield return null; // espera al siguiente frame
+    //    ShowMovementRange();
+    //}
 
     private void TrySubscribeToTurnSystem()
     {
@@ -248,7 +274,7 @@ public class PlayerTacticalController : MonoBehaviour
 
         if (turnMgr == null) return; // turnManager aún no ha sido creado (lo hace en Start)
 
-        turnMgr.OnTick += OnTurnStarted;
+        //turnMgr.OnTick += OnTurnStarted;
         subscribedToTurnEvent = true;
 
         ShowMovementRange(); // Mostrar las celdas en el primer turno
@@ -256,15 +282,15 @@ public class PlayerTacticalController : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (subscribedToTurnEvent && FightingSceneManager.Instance?.turnManager != null)
-        {
-            FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
-        }
+        //if (subscribedToTurnEvent && FightingSceneManager.Instance?.turnManager != null)
+        //{
+        //    FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
+        //}
     }
     private void OnDisable()
     {
-        if (FightingSceneManager.Instance != null)
-            FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
+        //if (FightingSceneManager.Instance != null)
+        //    FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
     }
 
     private List<Vector2Int> GetPath(Vector2Int start, Vector2Int end)
@@ -342,6 +368,48 @@ public class PlayerTacticalController : MonoBehaviour
         scale.x *= -1;
         transform.localScale = scale;
         facingRight = !facingRight;
+    }
+
+    public void StartTurn(Action onComplete)
+    {
+        hasActed = false;
+        onTurnComplete = onComplete;
+        ShowMovementRange();
+    }
+
+    private IEnumerator ExecuteMovementThenEndTurn(List<Vector2Int> path)
+    {
+        StartTilePathMovement(path);
+        while (isMoving)
+            yield return null;
+
+        yield return new WaitForSeconds(0.2f);
+
+        TryAttackEnemy();
+
+        onTurnComplete?.Invoke(); // Notificamos que hemos terminado el turno
+    }
+
+    private void TryAttackEnemy()
+    {
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        foreach (var dir in directions)
+        {
+            Vector2Int adjacent = cellPos + dir;
+            var cell = board.GetCellData(adjacent);
+
+            if (cell != null && cell.isOccupied && cell.occupant != null)
+            {
+                var enemy = cell.occupant.GetComponent<EnemyTacticalController>();
+                if (enemy != null)
+                {
+                    Debug.Log("Jugador ataca al enemigo adyacente!");
+                    enemy.TakeDamage(PlayerManager.Instance.Data.attack);
+                    return; // solo ataca al primero que encuentra
+                }
+            }
+        }
     }
 
 }

@@ -14,10 +14,7 @@ public class GameManager : MonoBehaviour
 
     public UIDocument uiDocument;
     private Label lbHealth;
-    private Label lbDefense;
-    private Label lbAttack;
     private Label lbMap;
-    private Label lbSpeed;
     private Label lbPlayerName;
     private Label lbPoints;
 
@@ -53,24 +50,25 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        UpdateUI();
     }
 
     public void setLabelUiDoc()
     {
-        lbAttack = uiDocument.rootVisualElement.Q<Label>("lbAttack");
-        lbDefense = uiDocument.rootVisualElement.Q<Label>("lbDefense");
-        lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
+
         lbMap = uiDocument.rootVisualElement.Q<Label>("lbMap");
-        lbSpeed = uiDocument.rootVisualElement.Q<Label>("lbSpeed");
+        lbPlayerName = uiDocument.rootVisualElement.Q<Label>("lbPlayerName");
+        lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
+        lbPoints = uiDocument.rootVisualElement.Q<Label>("lbPoints");
     }
 
     public void UpdateUI()
     {
-        lbAttack.text = player.Data.attack.ToString();
-        lbDefense.text = player.Data.defense.ToString();
+        lbPlayerName.text = player.Data.playerName;
+        lbPoints.text = player.Data.totalPoints.ToString();
         lbHealth.text = player.Data.currentHealth + "/" + player.Data.maxHealth;
-        lbMap.text = dungeonGenerator.Rooms.Count.ToString();
-        lbSpeed.text = player.Data.spaceMovement.ToString();
+        lbMap.text = player.Data.level.ToString();
     }
+
+
 }

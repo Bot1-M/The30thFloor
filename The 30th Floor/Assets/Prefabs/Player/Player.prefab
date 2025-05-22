@@ -332,6 +332,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81ecec52d8a0cb442bb3b49178291b0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerInput: {fileID: 0}
+  explorationController: {fileID: 0}
+  tacticalController: {fileID: 0}
 --- !u!114 &4979818201862751826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,3 +347,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad0ab7b0ad4bcb4468d2c35f20ee41fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fightPoints: 0
+  healthBar: {fileID: 0}
+  highlightTile: {fileID: 11400000, guid: 9730490d4cec72841a583b013cf18836, type: 2}
+  moveSpeed: 3.5

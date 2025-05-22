@@ -31,16 +31,17 @@ public class PlayerManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (!playerInput.enabled)
+            playerInput.enabled = true;
+
         if (scene.name == "Fighting")
         {
-            // Activar modo combate
             playerInput.SwitchCurrentActionMap("Combat");
             explorationController.enabled = false;
             tacticalController.enabled = true;
         }
         else if (scene.name == "Main")
         {
-            // Activar modo exploración
             playerInput.SwitchCurrentActionMap("Exploration");
             tacticalController.enabled = false;
             explorationController.enabled = true;

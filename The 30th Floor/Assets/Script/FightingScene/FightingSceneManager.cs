@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -49,7 +50,13 @@ public class FightingSceneManager : MonoBehaviour
 
         turnManager = new TurnManager();
 
-        turnManager.OnTick += OnTurnHappen;
+        //turnManager.OnTick += OnTurnHappen;
+
+        //////////
+        //////// CODIGO PARA TERMINAR LA FIGHTING SCENE
+        ///
+        //turnManager.OnCombatFinished += OnCombatEnded;
+
 
         boardManager.Init();
 
@@ -80,6 +87,17 @@ public class FightingSceneManager : MonoBehaviour
         SetUpUIDocument();
         UpdateUI();
 
+        List<ITurnTaker> turnOrder = new();
+        turnOrder.Add(player.GetComponent<PlayerTacticalController>());
+
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("EnemyFighting"))
+        {
+            var enemyTaker = enemy.GetComponent<EnemyTacticalController>();
+            if (enemyTaker != null)
+                turnOrder.Add(enemyTaker);
+        }
+
+        turnManager.InitTurnOrder(turnOrder);
         Debug.Log("FightingSceneManager Start FIN()");
 
     }
@@ -143,6 +161,25 @@ public class FightingSceneManager : MonoBehaviour
         lbPoints.text = playerTactical.fightPoints.ToString();
     }
 
+    //////////
+    //////// CODIGO PARA TERMINAR LA FIGHTING SCENE
+    ///
+
+    //private void OnCombatEnded()
+    //{
+    //    Debug.Log("¡Combate finalizado con éxito!");
+
+    //    // Aquí puedes:
+    //    // - Transicionar a la escena de exploración
+    //    // - Mostrar pantalla de victoria
+    //    // - Dar recompensas, etc.
+
+    //    SceneTransitionManager sceneTransition = FindObjectOfType<SceneTransitionManager>();
+    //    if (sceneTransition != null)
+    //    {
+    //        sceneTransition.FadeToScene("Main");
+    //    }
+    //}
 
 
 }
