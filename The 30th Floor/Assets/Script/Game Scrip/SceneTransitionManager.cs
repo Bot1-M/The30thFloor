@@ -24,7 +24,6 @@ public class SceneTransitionManager : MonoBehaviour
         StartCoroutine(FadeOutAndLoadScene(sceneName));
     }
 
-
     private IEnumerator FadeIn()
     {
         float t = fadeDuration;

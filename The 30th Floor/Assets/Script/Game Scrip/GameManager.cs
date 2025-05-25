@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,7 +20,6 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern to ensure only one instance of GameManager exists
         if (Instance == null)
         {
             Instance = this;
@@ -43,7 +42,7 @@ public class GameManager : MonoBehaviour
 
         setLabelUiDoc();
         UpdateUI();
-
+        AudioManager.Instance.PlayMusic(AudioManager.Instance.explorationClips[Random.Range(0, AudioManager.Instance.explorationClips.Length)]);
 
     }
 

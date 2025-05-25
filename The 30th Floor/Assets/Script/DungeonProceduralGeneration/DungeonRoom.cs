@@ -15,6 +15,8 @@ public class DungeonRoom
 
     public List<GameObject> SpawnedEnemies { get; private set; } = new();
 
+    public GameObject SpawnedChest { get; private set; } = new();
+
     public DungeonRoom(int id, HashSet<Vector2Int> tiles)
     {
         ID = id;
@@ -55,6 +57,12 @@ public class DungeonRoom
     {
         SpawnedEnemies.Add(enemy);
         SpawnedObjects.Add(enemy);
+    }
+
+    public void SetChest(GameObject chest)
+    {
+        SpawnedChest = chest;
+        SpawnedObjects.Add(chest);
     }
 }
 

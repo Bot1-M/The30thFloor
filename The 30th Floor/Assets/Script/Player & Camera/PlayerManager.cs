@@ -12,6 +12,11 @@ public class PlayerManager : MonoBehaviour
     public PlayerController explorationController;
     public PlayerTacticalController tacticalController;
 
+    public Animator animator;
+
+    //TODO VER QUE FUNCIONE ENTRE ESCENAS
+    public HealthBar healthBar;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -26,6 +31,7 @@ public class PlayerManager : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
         explorationController = GetComponent<PlayerController>();
         tacticalController = GetComponent<PlayerTacticalController>();
+        animator = GetComponent<Animator>();
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 

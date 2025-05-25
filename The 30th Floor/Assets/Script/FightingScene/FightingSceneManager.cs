@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,7 +22,7 @@ public class FightingSceneManager : MonoBehaviour
     private Label lbHealth;
     private Label lbMap;
     private Label lbPoints;
-
+    public event Action OnTurnManagerReady;
     public HealthBar healthBar;
 
 
@@ -49,6 +50,8 @@ public class FightingSceneManager : MonoBehaviour
         Debug.Log("FightingSceneManager Start () Principio");
 
         turnManager = new TurnManager();
+
+        OnTurnManagerReady?.Invoke();
 
         //turnManager.OnTick += OnTurnHappen;
 

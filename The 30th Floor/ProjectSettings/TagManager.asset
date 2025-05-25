@@ -8,6 +8,11 @@ TagManager:
   - Reaper
   - Board
   - EnemyFighting
+  - Audio
+  - Coin
+  - Candel
+  - Decoration
+  - Chest
   layers:
   - Default
   - TransparentFX

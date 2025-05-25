@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,15 +31,14 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
     private bool isMoving = false;
     private Vector3 moveTarget;
 
-    private Queue<Vector2Int> cellPath = new(); // celdas a recorrer
+    private Queue<Vector2Int> cellPath = new();
 
     private Animator animator;
 
     private bool facingRight = true;
 
-    //private bool boardIsReady = false;
-
     private Action onTurnComplete;
+    public bool IsMoving() => isMoving;
 
     void Update()
     {
@@ -56,11 +55,11 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
                 if (cellPath.Count > 0)
                 {
-                    MoveTo(cellPath.Dequeue(), false); // siguiente paso
+                    MoveTo(cellPath.Dequeue(), false);
                 }
                 else
                 {
-                    if (animator != null) animator.SetBool("isWalking", false);
+                    if (animator != null) PlayerManager.Instance.animator.SetBool("isWalking", false);
                     Debug.Log("Movimiento completo");
                 }
             }
@@ -71,6 +70,11 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         if (board == null) return;
 
         TryHandleMouseClick();
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            TryManualAttack(); // solo si se presiona E
+        }
+
     }
 
     public void MoveTo(Vector2Int cell, bool immediate = false)
@@ -86,8 +90,8 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         {
             isMoving = false;
             transform.position = targetWorldPos;
-            if (animator != null) animator.SetBool("isWalking", false);
-            Debug.Log("isWalking: " + animator.GetBool("isWalking"));
+            if (animator != null) PlayerManager.Instance.animator.SetBool("isWalking", false);
+            Debug.Log("isWalking: " + PlayerManager.Instance.animator.GetBool("isWalking"));
 
 
         }
@@ -96,14 +100,13 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
             FlipIfNeeded(transform.position, targetWorldPos);
             isMoving = true;
             moveTarget = targetWorldPos;
-            if (animator != null) animator.SetBool("isWalking", true);
-            Debug.Log("isWalking: " + animator.GetBool("isWalking"));
+            if (animator != null) PlayerManager.Instance.animator.SetBool("isWalking", true);
+            Debug.Log("isWalking: " + PlayerManager.Instance.animator.GetBool("isWalking"));
 
         }
 
         Debug.Log($" MoveTo: {cell} {(immediate ? "[instant]" : "[smooth]")}");
     }
-
 
 
     private void HandleMovementTo(Vector2Int target)
@@ -116,14 +119,14 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         if (!reachableCellsThisTurn.Contains(target))
         {
-            Debug.Log("�Celda fuera del rango permitido!");
+            Debug.Log("¡Celda fuera del rango permitido!");
             return;
         }
 
         List<Vector2Int> path = GetPath(cellPos, target);
         if (path.Count == 0)
         {
-            Debug.Log("No hay camino v�lido hasta el destino.");
+            Debug.Log("No hay camino válido hasta el destino.");
             return;
         }
 
@@ -147,7 +150,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         }
         else
         {
-            Debug.Log("Celda no v�lida para moverse: " + clickedCell);
+            Debug.Log("Celda no válida para moverse: " + clickedCell);
         }
     }
 
@@ -212,9 +215,14 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                 Vector2Int next = current + dir;
                 if (!visited.Contains(next) && board.IsWalkable(next))
                 {
-                    visited.Add(next);
-                    queue.Enqueue((next, steps + 1));
+                    var cellData = board.GetCellData(next);
+                    if (cellData != null && !cellData.isOccupied) // ✅ NUEVO: bloquear ocupados
+                    {
+                        visited.Add(next);
+                        queue.Enqueue((next, steps + 1));
+                    }
                 }
+
             }
         }
 
@@ -272,7 +280,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         var turnMgr = sceneManager.turnManager;
 
-        if (turnMgr == null) return; // turnManager a�n no ha sido creado (lo hace en Start)
+        if (turnMgr == null) return; // turnManager aún no ha sido creado (lo hace en Start)
 
         //turnMgr.OnTick += OnTurnStarted;
         subscribedToTurnEvent = true;
@@ -292,7 +300,6 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         //if (FightingSceneManager.Instance != null)
         //    FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
     }
-
     private List<Vector2Int> GetPath(Vector2Int start, Vector2Int end)
     {
         Dictionary<Vector2Int, Vector2Int> cameFrom = new();
@@ -339,14 +346,13 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         return path;
     }
 
-    private void StartTilePathMovement(List<Vector2Int> path)
+    internal void StartTilePathMovement(List<Vector2Int> path)
     {
         if (path == null || path.Count == 0) return;
 
         cellPath = new Queue<Vector2Int>(path);
         MoveTo(cellPath.Dequeue(), false); // mover a la primera celda suavemente
     }
-
 
     private void FlipIfNeeded(Vector3 from, Vector3 to)
     {
@@ -385,12 +391,56 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         yield return new WaitForSeconds(0.2f);
 
-        TryAttackEnemy();
-
         onTurnComplete?.Invoke(); // Notificamos que hemos terminado el turno
     }
 
-    private void TryAttackEnemy()
+    private void TryManualAttack()
+    {
+        if (hasActed)
+        {
+            Debug.Log("Ya has actuado este turno.");
+            return;
+        }
+
+        if (!IsEnemyAdjacent())
+        {
+            Debug.Log("No hay enemigos adyacentes.");
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            board.ClearOverlay();
+            PlayerManager.Instance.animator.SetTrigger("Attack");
+            if (TryAttackEnemy())
+            {
+                hasActed = true;
+                onTurnComplete?.Invoke();
+            }
+        }
+    }
+
+    private bool IsEnemyAdjacent()
+    {
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        foreach (var dir in directions)
+        {
+            Vector2Int adjacent = cellPos + dir;
+            var cell = board.GetCellData(adjacent);
+
+            if (cell != null && cell.isOccupied && cell.occupant != null)
+            {
+                if (cell.occupant.GetComponent<EnemyTacticalController>() != null)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool TryAttackEnemy()
     {
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
@@ -404,12 +454,15 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                 var enemy = cell.occupant.GetComponent<EnemyTacticalController>();
                 if (enemy != null)
                 {
-                    Debug.Log("Jugador ataca al enemigo adyacente!");
-                    enemy.TakeDamage(PlayerManager.Instance.Data.attack);
-                    return; // solo ataca al primero que encuentra
+                    Debug.Log("Jugador ataca al enemigo adyacente con la tecla E!");
+                    enemy.TakeDamage(PlayerManager.Instance.Data.attack); // ← ESTA LÍNEA HACE DAÑO
+                    return true;
                 }
             }
         }
+
+        return false;
     }
+
 
 }

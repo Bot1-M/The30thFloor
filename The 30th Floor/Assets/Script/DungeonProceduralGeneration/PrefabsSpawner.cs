@@ -19,6 +19,9 @@ public class PrefabsSpawner : MonoBehaviour
     [SerializeField] private GameObject torchPrefab;
     [SerializeField] private GameObject torchSecondaryPrefab;
 
+    [Header("Cofres")]
+    [SerializeField] private List<GameObject> chestPrefabs;
+
     [Header("Spawn Settings")]
     [SerializeField] private int maxItems = 20;
     [SerializeField] private int maxEnemies = 3;
@@ -26,6 +29,16 @@ public class PrefabsSpawner : MonoBehaviour
     [SerializeField] private int clearanceRadius = 1;
     [SerializeField] private int itemSpacingRadius = 1;
     [SerializeField] private float centerExclusionRadius = 1.5f;
+
+    [SerializeField] private int maxChestsPerRoom = 1;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float chestSpawnChance = 0.3f; // 30% por sala
+
+
+    [Header("Salida de la dungeon")]
+    [SerializeField] private GameObject exitPrefab;
+
 
     private HashSet<Vector2Int> floorPositions;
 
@@ -44,6 +57,9 @@ public class PrefabsSpawner : MonoBehaviour
     private void SpawnAll()
     {
         Debug.Log("Total rooms: " + dungeonGenerator.Rooms.Count);
+
+        ClearTaggedPrefabs();
+
         floorPositions = dungeonGenerator.FloorPositions;
         var roomPositions = dungeonGenerator.RoomPositions;
         var occupiedPositions = new List<Vector2Int>();
@@ -51,6 +67,8 @@ public class PrefabsSpawner : MonoBehaviour
         foreach (var room in dungeonGenerator.Rooms)
         {
             SpawnItemsInRoom(itemPrefabsRooms, room, maxItems, occupiedPositions);
+            SpawnChestsInRoom(room, occupiedPositions);
+
         }
         SpawnItemsInRoom(itemPrefabsCorridors, new DungeonRoom(-1, dungeonGenerator.CorridorPositions), maxItems, occupiedPositions);
 
@@ -72,8 +90,26 @@ public class PrefabsSpawner : MonoBehaviour
         }
 
         SpawnTorchesInRooms(occupiedPositions);
+        SpawnExitInFurthestRoom();
 
+    }
 
+    private void ClearTaggedPrefabs()
+    {
+        string[] tagsToClear = { "Slime", "Reaper", "Coin", "Candel", "Decoration" };
+        int deleted = 0;
+
+        foreach (string tag in tagsToClear)
+        {
+            var objects = GameObject.FindGameObjectsWithTag(tag);
+            foreach (var obj in objects)
+            {
+                Destroy(obj);
+                deleted++;
+            }
+        }
+
+        Debug.Log($"Eliminados {deleted} objetos con tags específicos.");
     }
 
     private void SpawnTorchesInRooms(List<Vector2Int> occupied)
@@ -180,6 +216,66 @@ public class PrefabsSpawner : MonoBehaviour
             spawned++;
         }
     }
+    private void SpawnExitInFurthestRoom()
+    {
+        if (dungeonGenerator.Rooms == null || dungeonGenerator.Rooms.Count == 0)
+        {
+            Debug.LogWarning("No hay habitaciones para colocar la salida.");
+            return;
+        }
+
+        DungeonRoom furthestRoom = null;
+        float maxDistance = -1f;
+
+        foreach (var room in dungeonGenerator.Rooms)
+        {
+            float distance = Vector2Int.Distance(Vector2Int.zero, room.Center);
+            if (distance > maxDistance)
+            {
+                maxDistance = distance;
+                furthestRoom = room;
+            }
+        }
+
+        if (furthestRoom != null && exitPrefab != null)
+        {
+            Vector3 worldPos = new Vector3(furthestRoom.Center.x, furthestRoom.Center.y, 0f);
+            GameObject exit = Instantiate(exitPrefab, worldPos, Quaternion.identity);
+            furthestRoom.AddObject(exit); // Se podrá limpiar al regenerar
+            Debug.Log($"Salida colocada en sala {furthestRoom.ID} en {furthestRoom.Center}");
+        }
+    }
+
+    private void SpawnChestsInRoom(DungeonRoom room, List<Vector2Int> occupied)
+    {
+        if (chestPrefabs == null || chestPrefabs.Count == 0 || room == null)
+            return;
+
+        if (Random.value > chestSpawnChance)
+            return; // no se genera cofre en esta sala
+
+        int level = PlayerManager.Instance?.Data?.level ?? 1;
+
+        var clusterFiltered = ExcludeCenterTiles(room.Tiles, centerExclusionRadius);
+        Shuffle(clusterFiltered);
+
+        int spawned = 0;
+
+        foreach (var pos in clusterFiltered)
+        {
+            if (spawned >= maxChestsPerRoom) break;
+            if (!HasClearanceAround(pos)) continue;
+            if (!HasItemSpacing(pos, occupied, itemSpacingRadius)) continue;
+
+            int chestIndex = GetChestTypeByLevel(level);
+            var go = Instantiate(chestPrefabs[chestIndex], new Vector3(pos.x, pos.y, 0f), Quaternion.identity);
+            go.tag = "Chest";
+            room.AddObject(go);
+            occupied.Add(pos);
+            spawned++;
+        }
+    }
+
 
     private bool HasClearanceAround(Vector2Int pos)
     {
@@ -266,6 +362,45 @@ public class PrefabsSpawner : MonoBehaviour
             list[i] = tmp;
         }
     }
+
+
+
+    private int GetChestTypeByLevel(int level)
+    {
+        float[] baseWeights = new float[] { 60f, 20f, 10f, 5f, 3f, 2f };
+
+        // BLOQUEAR cofres legendario (4) y mítico (5) hasta nivel 5
+        int maxChestIndex = chestPrefabs.Count - 1;
+        if (level < 5)
+            maxChestIndex = Mathf.Min(3, chestPrefabs.Count - 1); // hasta épico
+
+        // Ajustar pesos solo hasta el cofre máximo permitido por el nivel
+        float scale = Mathf.Clamp(level / 30f, 0f, 1f);
+        float[] adjustedWeights = new float[maxChestIndex + 1];
+        float totalWeight = 0f;
+
+        for (int i = 0; i <= maxChestIndex; i++)
+        {
+            float rarityFactor = Mathf.InverseLerp(0, baseWeights.Length - 1, i);
+            float influence = (rarityFactor - 0.5f) * 2f * scale;
+            adjustedWeights[i] = baseWeights[i] * (1f + influence);
+            totalWeight += adjustedWeights[i];
+        }
+
+        float randomPoint = Random.value * totalWeight;
+
+        for (int i = 0; i <= maxChestIndex; i++)
+        {
+            if (randomPoint < adjustedWeights[i])
+                return i;
+            randomPoint -= adjustedWeights[i];
+        }
+
+        return 0;
+    }
+
+
+
 }
 
 

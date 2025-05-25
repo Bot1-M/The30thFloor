@@ -11,7 +11,6 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveInput; // Input vector for movement
 
-    private Animator animator;
 
     float horizontalInput; // Variable to store horizontal input
 
@@ -24,7 +23,6 @@ public class PlayerController : MonoBehaviour
     public void Init()
     {
         rb = GetComponent<Rigidbody2D>(); // Get the Rigidbody2D component attached to the player GameObject
-        animator = GetComponent<Animator>(); // Get the Animator component attached to the player GameObject
         SpawnPlayer(); // Call the SpawnPlayer method to set the initial position of the player
     }
 
@@ -43,11 +41,13 @@ public class PlayerController : MonoBehaviour
     {
         if (context.canceled) // Check if the input action is canceled
         {
-            animator.SetBool("isWalking", false); // Set the walking animation to false
+            AudioManager.Instance.StopWalkingSound(); // Stop the walking sound
+            PlayerManager.Instance.animator.SetBool("isWalking", false); // Set the walking animation to false
         }
         else
         {
-            animator.SetBool("isWalking", true); // Set the walking animation to true
+            AudioManager.Instance.PlayWalkingSound();
+            PlayerManager.Instance.animator.SetBool("isWalking", true); // Set the walking animation to true
         }
         moveInput = context.ReadValue<Vector2>(); // Read the input value from the context and assign it to moveInput
     }
@@ -79,6 +79,25 @@ public class PlayerController : MonoBehaviour
         transform.position = spawnPosition; // Set the player's position to the spawn position
 
 
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Coin"))
+        {
+            Destroy(collision.gameObject);
+            AudioManager.Instance.PlaySFX("pointsAdded");
+            PlayerManager.Instance.Data.totalPoints += 100;
+            Debug.Log("Total Points: " + PlayerManager.Instance.Data.totalPoints);
+        }
+
+        if (collision.gameObject.CompareTag("Finish"))
+        {
+            PlayerManager.Instance.Data.level += 1;
+            Debug.Log("Salida activada. Regenerando dungeon...");
+            GameManager.Instance.dungeonGenerator.GenerateDungeon();
+            PlayerManager.Instance.explorationController.Init();
+        }
     }
 
 }
