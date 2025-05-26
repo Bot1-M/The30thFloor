@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
         {
             PlayerManager.Instance.Data.level += 1;
             Debug.Log("Salida activada. Regenerando dungeon...");
-            GameManager.Instance.dungeonGenerator.GenerateDungeon();
+            //GameManager.Instance.dungeonGenerator.GenerateDungeon();
             PlayerManager.Instance.explorationController.Init();
         }
     }

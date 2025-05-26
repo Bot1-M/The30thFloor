@@ -23,7 +23,12 @@ public class CameraFollow : MonoBehaviour
 
     void Update()
     {
+        if (player == null)
+            return;
+
         Vector3 newPosition = new Vector3(player.position.x, player.position.y, transform.position.z);
+       
+
         transform.position = Vector3.Slerp(transform.position, newPosition, followSpeed * Time.deltaTime);
     }
 }

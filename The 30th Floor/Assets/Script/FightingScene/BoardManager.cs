@@ -206,4 +206,26 @@ public class BoardManager : MonoBehaviour
     }
 
 
+    public void SpawnExitAt(Vector2Int position, GameObject exitPrefab)
+    {
+        if (!IsInsideBoard(position))
+        {
+            Debug.LogWarning("Posición fuera del tablero: " + position);
+            return;
+        }
+
+        var cellData = GetCellData(position);
+        if (cellData == null || !cellData.isWalkable || cellData.isOccupied)
+        {
+            Debug.LogWarning("La celda no está disponible para colocar la salida.");
+            return;
+        }
+
+        Vector3 worldPos = GridToWorldCenter(position);
+        GameObject exit = Instantiate(exitPrefab, worldPos, Quaternion.identity);
+        SetOccupied(position, exit);
+    }
+
+
+
 }

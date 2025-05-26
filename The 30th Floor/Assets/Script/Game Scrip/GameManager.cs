@@ -34,15 +34,43 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        dungeonGenerator.GenerateDungeon();
-        player.explorationController.Init();
+        player = PlayerManager.Instance;
 
-        healthBar.SetMaxHealth(player.Data.maxHealth);
-        healthBar.SetHealth(player.Data.currentHealth);
+        if (player == null)
+        {
+            Debug.LogError("PlayerManager.Instance es null. Asegúrate de que PlayerManager exista en la escena o fue instanciado antes.");
+            return;
+        }
+
+        dungeonGenerator.GenerateDungeon();
+
+        if (player.explorationController != null)
+        {
+            player.explorationController.Init();
+        }
+        else
+        {
+            Debug.LogWarning("explorationController es null.");
+        }
+
+        if (healthBar != null)
+        {
+            healthBar.SetMaxHealth(player.Data.maxHealth);
+            healthBar.SetHealth(player.Data.currentHealth);
+        }
+        else
+        {
+            Debug.LogWarning("healthBar no está asignado en el GameManager.");
+        }
 
         setLabelUiDoc();
         UpdateUI();
-        AudioManager.Instance.PlayMusic(AudioManager.Instance.explorationClips[Random.Range(0, AudioManager.Instance.explorationClips.Length)]);
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMusic(AudioManager.Instance.explorationClips[
+                Random.Range(0, AudioManager.Instance.explorationClips.Length)]);
+        }
 
     }
 

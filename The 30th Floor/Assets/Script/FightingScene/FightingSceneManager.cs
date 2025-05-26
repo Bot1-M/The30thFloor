@@ -9,6 +9,7 @@ public class FightingSceneManager : MonoBehaviour
     public static FightingSceneManager Instance { get; private set; }
 
     public TurnManager turnManager;
+    public GameObject exitPrefab;
 
     [SerializeField] private BoardManager boardManager;
     private GameObject player;
@@ -18,7 +19,6 @@ public class FightingSceneManager : MonoBehaviour
     public UIDocument uiDocument;
     private Label lbSpeed;
     private Label lbAttack;
-    private Label lbDefense;
     private Label lbHealth;
     private Label lbMap;
     private Label lbPoints;
@@ -53,16 +53,9 @@ public class FightingSceneManager : MonoBehaviour
 
         OnTurnManagerReady?.Invoke();
 
-        //turnManager.OnTick += OnTurnHappen;
-
-        //////////
-        //////// CODIGO PARA TERMINAR LA FIGHTING SCENE
-        ///
-        //turnManager.OnCombatFinished += OnCombatEnded;
-
-
         boardManager.Init();
 
+        AudioManager.Instance.PlayMusic(AudioManager.Instance.fightingClips);
 
         if (player == null || boardManager == null)
         {
@@ -73,10 +66,15 @@ public class FightingSceneManager : MonoBehaviour
         if (boardManager.IsReady)
         {
             SpawnPlayer();
+            boardManager.SpawnExitAt(new Vector2Int(16, 7), exitPrefab);
         }
         else
         {
-            boardManager.OnBoardReady += SpawnPlayer;
+            boardManager.OnBoardReady += () =>
+            {
+                SpawnPlayer();
+                boardManager.SpawnExitAt(new Vector2Int(16, 7), exitPrefab);
+            };
         }
 
 
@@ -105,8 +103,6 @@ public class FightingSceneManager : MonoBehaviour
 
     }
 
-
-
     private void SpawnPlayer()
     {
         Debug.Log("Board listo, ejecutando Spawn del jugador.");
@@ -121,12 +117,6 @@ public class FightingSceneManager : MonoBehaviour
         }
     }
 
-    void OnTurnHappen()
-    {
-        turnNumber += 1;
-        Debug.Log("Turn Number : " + turnNumber);
-    }
-
     private void SetUpUIDocument()
     {
         if (uiDocument == null)
@@ -136,7 +126,6 @@ public class FightingSceneManager : MonoBehaviour
         }
         lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
         lbAttack = uiDocument.rootVisualElement.Q<Label>("lbAttack");
-        lbDefense = uiDocument.rootVisualElement.Q<Label>("lbDefense");
         lbSpeed = uiDocument.rootVisualElement.Q<Label>("lbSpeed");
         lbMap = uiDocument.rootVisualElement.Q<Label>("lbMap");
         lbPoints = uiDocument.rootVisualElement.Q<Label>("lbFightingPoints");
@@ -158,31 +147,37 @@ public class FightingSceneManager : MonoBehaviour
         var playerTactical = player.GetComponent<PlayerTacticalController>();
         lbHealth.text = playerData.currentHealth + "/" + playerData.maxHealth;
         lbAttack.text = playerData.attack.ToString();
-        lbDefense.text = playerData.defense.ToString();
         lbSpeed.text = playerData.spaceMovement.ToString();
         lbMap.text = playerData.level.ToString();
         lbPoints.text = playerTactical.fightPoints.ToString();
     }
 
-    //////////
-    //////// CODIGO PARA TERMINAR LA FIGHTING SCENE
-    ///
+    private void Update()
+    {
+        UpdateUI();
+    }
 
-    //private void OnCombatEnded()
-    //{
-    //    Debug.Log("¡Combate finalizado con éxito!");
+    ////////
+    ////// CODIGO PARA TERMINAR LA FIGHTING SCENE
 
-    //    // Aquí puedes:
-    //    // - Transicionar a la escena de exploración
-    //    // - Mostrar pantalla de victoria
-    //    // - Dar recompensas, etc.
 
-    //    SceneTransitionManager sceneTransition = FindObjectOfType<SceneTransitionManager>();
-    //    if (sceneTransition != null)
-    //    {
-    //        sceneTransition.FadeToScene("Main");
-    //    }
-    //}
+    private void OnCombatEnded()
+    {
+        Debug.Log("¡Combate finalizado con éxito!");
+
+        // Aquí puedes:
+        // - Transicionar a la escena de exploración
+        // - Mostrar pantalla de victoria
+        // - Dar recompensas, etc.
+
+        SceneTransitionManager sceneTransition = FindObjectOfType<SceneTransitionManager>();
+        if (sceneTransition != null)
+        {
+            sceneTransition.FadeToScene("Main");
+        }
+    }
+
+
 
 
 }

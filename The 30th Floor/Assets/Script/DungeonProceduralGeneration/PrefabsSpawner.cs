@@ -96,7 +96,7 @@ public class PrefabsSpawner : MonoBehaviour
 
     private void ClearTaggedPrefabs()
     {
-        string[] tagsToClear = { "Slime", "Reaper", "Coin", "Candel", "Decoration" };
+        string[] tagsToClear = { "Slime", "Reaper", "Coin", "Candel", "Decoration", "Chest" };
         int deleted = 0;
 
         foreach (string tag in tagsToClear)

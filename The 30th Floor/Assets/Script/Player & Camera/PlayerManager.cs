@@ -37,8 +37,11 @@ public class PlayerManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (!playerInput.enabled)
-            playerInput.enabled = true;
+        if (playerInput != null)
+        {
+            playerInput.DeactivateInput(); // asegura que se desactiva correctamente
+            playerInput.ActivateInput();   // vuelve a activarlo (rehace pairing)
+        }
 
         if (scene.name == "Fighting")
         {
@@ -53,6 +56,8 @@ public class PlayerManager : MonoBehaviour
             explorationController.enabled = true;
         }
     }
+
+
 
     void OnDestroy()
     {

@@ -64,9 +64,16 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void Clear()
     {
+        if (floorTilemap == null || wallTilemap == null)
+        {
+            Debug.LogWarning("Tilemaps ya no existen, no se puede hacer Clear().");
+            return;
+        }
+
         floorTilemap.ClearAllTiles();
         wallTilemap.ClearAllTiles();
     }
+
 
     internal void PaintSingleCornerWall(Vector2Int position, string binaryType)
     {

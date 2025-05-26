@@ -1,9 +1,12 @@
+using TMPro;
 using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MenuInicial : MonoBehaviour
 {
+    [SerializeField] private TMP_InputField playerNameInputField;
+
     [SerializeField]
     private MenuTransitionUI transitionUI;
     private void Start()
@@ -47,5 +50,31 @@ public class MenuInicial : MonoBehaviour
     public void playHoverSound()
     {
         AudioManager.Instance.PlaySFX("hoverSound");
+    }
+
+    public void empezarPartida()
+    {
+        if (PlayerManager.Instance == null)
+        {
+            GameObject playerManagerPrefab = Resources.Load<GameObject>("Player");
+            Instantiate(playerManagerPrefab);
+        }
+
+        if (string.IsNullOrEmpty(playerNameInputField.text))
+        {
+            Debug.LogWarning("El nombre del jugador no puede estar vacío.");
+            return;
+        }
+
+        if (playerNameInputField.text.Length > 4)
+        {
+            Debug.LogWarning("El nombre del jugador debe tener menos de 4 caracteres.");
+            return;
+        }
+        else
+        {
+            PlayerManager.Instance.Data.playerName = playerNameInputField.text;
+            SceneManager.LoadScene("Main");
+        }
     }
 }

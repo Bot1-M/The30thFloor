@@ -53,15 +53,20 @@ public class AudioManager : MonoBehaviour
     {
         if (!sfxSource.isPlaying)
         {
-
-            sfxSource.loop = true;
-
-            sfxSource.clip = sfxDict["walkingSound"];
-            if (Random.Range(0, 2) == 0)
+            if (sfxDict.TryGetValue("walkingSound", out var clip))
+            {
+                sfxSource.loop = true;
+                sfxSource.clip = clip;
                 sfxSource.pitch = Random.Range(0.8f, 1.2f);
-            sfxSource.Play();
+                sfxSource.Play();
+            }
+            else
+            {
+                Debug.LogWarning("SFX 'walkingSound' no encontrado en el diccionario.");
+            }
         }
     }
+
 
     public void StopWalkingSound()
     {

@@ -170,5 +170,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b182039a917f8e4fb5f5d8819dbcb1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  FloatingTextPrefab: {fileID: 2783685028125585990, guid: 1fb82d97be4279f4fbf2d99ec2157cac, type: 3}
   health: 5
   attackPower: 2

@@ -19,7 +19,7 @@ public class ChestStatModifier : MonoBehaviour
 
         PlayerData data = PlayerManager.Instance.Data;
 
-        int statIndex = Random.Range(1, 7);
+        int statIndex = Random.Range(1, 6);
 
         switch (statIndex)
         {
@@ -46,20 +46,13 @@ public class ChestStatModifier : MonoBehaviour
                 }
                 break;
             case 4:
-                if (defenseBonus != 0)
-                {
-                    data.defense += defenseBonus;
-                    Debug.Log($"+{defenseBonus} DEF");
-                }
-                break;
-            case 5:
                 if (spaceMovementBonus != 0)
                 {
                     data.spaceMovement += spaceMovementBonus;
                     Debug.Log($"+{spaceMovementBonus} MOV");
                 }
                 break;
-            case 6:
+            case 5:
                 if (pointsBonus != 0)
                 {
                     data.totalPoints += pointsBonus;

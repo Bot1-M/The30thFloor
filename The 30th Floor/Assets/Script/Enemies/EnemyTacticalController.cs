@@ -1,9 +1,11 @@
-using System;
+ï»¿using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class EnemyTacticalController : MonoBehaviour, ITurnTaker
 {
+    public GameObject FloatingTextPrefab;
     public int health;
     public int attackPower;
 
@@ -11,16 +13,18 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
     private BoardManager board;
     private Transform playerTransform;
 
+    private Animator animator;
+    private bool facingRight = true;
+
     private Action onTurnComplete;
 
     private void Start()
     {
         board = FindAnyObjectByType<BoardManager>();
         playerTransform = GameObject.FindWithTag("Player").transform;
-
-        // Registro al sistema de turnos
-        //FightingSceneManager.Instance.turnManager.OnTick += OnTurnTick;
+        animator = GetComponent<Animator>();
     }
+
 
     private void OnDestroy()
     {
@@ -37,30 +41,20 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
         attackPower = atk;
     }
 
-    //private void OnTurnTick()
-    //{
-    //    Vector2Int playerCell = PlayerManager.Instance.tacticalController.Cell;
+    private void FlipIfNeeded(Vector3 from, Vector3 to)
+    {
+        float dirX = to.x - from.x;
+        if (dirX < -0.01f && facingRight) Flip();
+        else if (dirX > 0.01f && !facingRight) Flip();
+    }
 
-    //    // Verifica si está adyacente al jugador
-    //    if (IsAdjacent(currentCell, playerCell))
-    //    {
-    //        Debug.Log("Enemy attacks the player!");
-    //        PlayerManager.Instance.tacticalController.TakeDamage(attackPower);
-    //    }
-    //    else
-    //    {
-    //        Vector2Int direction = GetStepToward(currentCell, playerCell);
-    //        Vector2Int nextCell = currentCell + direction;
-
-    //        if (CanMoveTo(nextCell))
-    //        {
-    //            board.SetOccupied(currentCell, null);
-    //            board.SetOccupied(nextCell, gameObject);
-    //            currentCell = nextCell;
-    //            transform.position = board.GridToWorldCenter(currentCell);
-    //        }
-    //    }
-    //}
+    private void Flip()
+    {
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+        facingRight = !facingRight;
+    }
 
     private bool IsAdjacent(Vector2Int a, Vector2Int b)
     {
@@ -96,8 +90,22 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
                 FightingSceneManager.Instance.turnManager.RemoveTurnTaker(this);
             }
 
+            if (FloatingTextPrefab)
+            {
+                ShowFloatingText();
+
+            }
+
             Destroy(gameObject);
         }
+    }
+
+    private void ShowFloatingText()
+    {
+        Debug.Log("Mostrar texto flotante de puntos");
+        Transform position = GameObject.FindWithTag("SpawnPointText").transform;
+        GameObject go = Instantiate(FloatingTextPrefab, position.position, Quaternion.identity, position);
+        go.GetComponent<TextMeshPro>().text = $"+{GetPoints()}";
     }
 
     public void StartTurn(Action onComplete)
@@ -115,7 +123,17 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
 
         if (IsAdjacent(currentCell, playerCell) && PlayerManager.Instance.Data.currentHealth > 0)
         {
-            Debug.Log("Enemy attacks the player!");
+            Vector3 enemyPos = transform.position;
+            Vector3 playerWorld = board.GridToWorldCenter(playerCell);
+            FlipIfNeeded(enemyPos, playerWorld);
+
+            if (animator != null)
+            {
+                animator.SetTrigger("Attack");
+                AudioManager.Instance.PlaySFX("hitSound");
+            }
+            yield return new WaitForSeconds(0.3f); // tiempo para que se vea el ataque
+
             PlayerManager.Instance.tacticalController.TakeDamage(attackPower);
         }
         else
@@ -127,14 +145,28 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
             {
                 board.SetOccupied(currentCell, null);
                 board.SetOccupied(nextCell, gameObject);
+
+                Vector3 from = transform.position;
+                Vector3 to = board.GridToWorldCenter(nextCell);
+                FlipIfNeeded(from, to);
+
                 currentCell = nextCell;
-                transform.position = board.GridToWorldCenter(currentCell);
+                transform.position = to;
             }
         }
 
         yield return new WaitForSeconds(0.2f);
         onTurnComplete?.Invoke();
     }
+
+    private int GetPoints()
+    {
+        int points = 200 + (int)Math.Round(PlayerManager.Instance.Data.level * UnityEngine.Random.Range((float)1.0, (float)2.0));
+        PlayerManager.Instance.Data.totalPoints += points;
+        PlayerManager.Instance.tacticalController.fightPoints += points;
+        return points;
+    }
+
 
 }
 

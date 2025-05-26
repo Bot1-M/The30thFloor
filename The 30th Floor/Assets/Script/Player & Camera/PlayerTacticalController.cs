@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using static BoardManager;
 
@@ -164,7 +165,11 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
     private bool IsValidTarget(Vector2Int cell)
     {
         var data = board.GetCellData(cell);
-        return data != null && data.isWalkable;
+        if (data == null || !data.isWalkable)
+            return false;
+
+        return !data.isOccupied ||
+               (data.occupant != null && data.occupant.CompareTag("Finish"));
     }
 
     public void TakeDamage(int amount)
@@ -216,7 +221,8 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                 if (!visited.Contains(next) && board.IsWalkable(next))
                 {
                     var cellData = board.GetCellData(next);
-                    if (cellData != null && !cellData.isOccupied) // ✅ NUEVO: bloquear ocupados
+                    if (cellData != null && (!cellData.isOccupied ||
+                        (cellData.occupant != null && cellData.occupant.CompareTag("Finish"))))
                     {
                         visited.Add(next);
                         queue.Enqueue((next, steps + 1));
@@ -259,19 +265,6 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         healthBar = FightingSceneManager.Instance.healthBar;
     }
 
-    //private void OnTurnStarted()
-    //{
-    //    hasActed = false;
-    //    if (boardIsReady)
-    //        StartCoroutine(DeferredShowMovementRange());
-    //}
-
-    //private IEnumerator DeferredShowMovementRange()
-    //{
-    //    yield return null; // espera al siguiente frame
-    //    ShowMovementRange();
-    //}
-
     private void TrySubscribeToTurnSystem()
     {
         var sceneManager = FightingSceneManager.Instance;
@@ -282,19 +275,12 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         if (turnMgr == null) return; // turnManager aún no ha sido creado (lo hace en Start)
 
-        //turnMgr.OnTick += OnTurnStarted;
         subscribedToTurnEvent = true;
 
         ShowMovementRange(); // Mostrar las celdas en el primer turno
     }
 
-    private void OnDestroy()
-    {
-        //if (subscribedToTurnEvent && FightingSceneManager.Instance?.turnManager != null)
-        //{
-        //    FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
-        //}
-    }
+
     private void OnDisable()
     {
         //if (FightingSceneManager.Instance != null)
@@ -442,7 +428,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
     private bool TryAttackEnemy()
     {
-        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        Vector2Int[] directions = { Vector2Int.left, Vector2Int.right, Vector2Int.up, Vector2Int.down };
 
         foreach (var dir in directions)
         {
@@ -454,14 +440,25 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                 var enemy = cell.occupant.GetComponent<EnemyTacticalController>();
                 if (enemy != null)
                 {
+                    Vector3 enemyPos = board.GridToWorldCenter(adjacent);
+                    FlipIfNeeded(transform.position, enemyPos);
+
                     Debug.Log("Jugador ataca al enemigo adyacente con la tecla E!");
-                    enemy.TakeDamage(PlayerManager.Instance.Data.attack); // ← ESTA LÍNEA HACE DAÑO
+                    enemy.TakeDamage(PlayerManager.Instance.Data.attack);
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Finish"))
+        {
+            SceneManager.LoadScene("Main");
+        }
     }
 
 
