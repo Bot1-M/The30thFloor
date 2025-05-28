@@ -109,7 +109,6 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         Debug.Log($" MoveTo: {cell} {(immediate ? "[instant]" : "[smooth]")}");
     }
 
-
     private void HandleMovementTo(Vector2Int target)
     {
         if (hasActed)
@@ -174,6 +173,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
     public void TakeDamage(int amount)
     {
+        if (animator != null) PlayerManager.Instance.animator.SetTrigger("isDamage");
         var data = PlayerManager.Instance.Data;
         data.currentHealth -= amount;
         data.currentHealth = Mathf.Max(0, data.currentHealth);
@@ -183,6 +183,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         if (data.currentHealth <= 0)
         {
+            FightingSceneManager.Instance.Death();
             Debug.Log("El jugador ha muerto.");
         }
     }
@@ -242,9 +243,14 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         MoveTo(cell, true);
         animator = GetComponent<Animator>();
 
+        // Forzar orientación hacia la derecha
+        Vector3 scale = transform.localScale;
+        if (scale.x < 0)
+            scale.x *= -1;
+        transform.localScale = scale;
+
         if (board.IsReady)
         {
-            //boardIsReady = true;
             ShowMovementRange();
         }
         else
@@ -252,6 +258,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
             board.OnBoardReady += OnBoardReadyForPlayer;
         }
     }
+
 
     private void OnBoardReadyForPlayer()
     {
@@ -457,7 +464,17 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
     {
         if (collision.CompareTag("Finish"))
         {
-            SceneManager.LoadScene("Main");
+            PlayerManager.Instance.animator.SetBool("isWalking", false);
+            SceneTransitionManager stm = FindAnyObjectByType<SceneTransitionManager>();
+            if (stm != null)
+            {
+                stm.FadeToScene("Main");
+            }
+            else
+            {
+                Debug.LogWarning("SceneTransitionManager no encontrado.");
+                SceneManager.LoadScene("Main"); // fallback
+            }
         }
     }
 

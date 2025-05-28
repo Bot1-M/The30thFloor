@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
@@ -9,8 +11,9 @@ public class GameManager : MonoBehaviour
 
     public CorridorFirstDungeonGenerator dungeonGenerator;
     public PlayerManager player;
+    public CameraFollow cameraFollow;
 
-    [SerializeField] private HealthBar healthBar;
+    public HealthBar healthBar;
 
     public UIDocument uiDocument;
     private Label lbHealth;
@@ -29,10 +32,12 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void Init()
     {
         player = PlayerManager.Instance;
 
@@ -72,6 +77,8 @@ public class GameManager : MonoBehaviour
                 Random.Range(0, AudioManager.Instance.explorationClips.Length)]);
         }
 
+        cameraFollow.Init(player.transform);
+
     }
 
     // Update is called once per frame
@@ -82,11 +89,25 @@ public class GameManager : MonoBehaviour
 
     public void setLabelUiDoc()
     {
+        if (uiDocument == null)
+        {
+            Debug.Log("UIDocument no asignado.");
+            return;
+        }
 
-        lbMap = uiDocument.rootVisualElement.Q<Label>("lbMap");
-        lbPlayerName = uiDocument.rootVisualElement.Q<Label>("lbPlayerName");
-        lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
-        lbPoints = uiDocument.rootVisualElement.Q<Label>("lbPoints");
+        var root = uiDocument.rootVisualElement;
+
+        lbMap = root.Q<Label>("lbMap");
+        if (lbMap == null) Debug.LogWarning("Label 'lbMap' no encontrado en el UI Document.");
+
+        lbPlayerName = root.Q<Label>("lbPlayerName");
+        if (lbPlayerName == null) Debug.LogWarning("Label 'lbPlayerName' no encontrado en el UI Document.");
+
+        lbHealth = root.Q<Label>("lbHealth");
+        if (lbHealth == null) Debug.LogWarning("Label 'lbHealth' no encontrado en el UI Document.");
+
+        lbPoints = root.Q<Label>("lbPoints");
+        if (lbPoints == null) Debug.LogWarning("Label 'lbPoints' no encontrado en el UI Document.");
     }
 
     public void UpdateUI()
@@ -97,5 +118,43 @@ public class GameManager : MonoBehaviour
         lbMap.text = player.Data.level.ToString();
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Main")
+        {
+            gameObject.SetActive(true);
+
+            player = PlayerManager.Instance;
+            if (player == null)
+            {
+                Debug.LogError("PlayerManager.Instance es null. Asegúrate de que PlayerManager exista en la escena o fue instanciado antes.");
+            }
+            dungeonGenerator = FindAnyObjectByType<CorridorFirstDungeonGenerator>();
+            if (dungeonGenerator == null)
+            {
+                Debug.LogError("No se encontró CorridorFirstDungeonGenerator en la escena.");
+            }
+            cameraFollow = FindAnyObjectByType<CameraFollow>();
+            if (cameraFollow == null)
+            {
+                Debug.LogError("No se encontró CameraFollow en la escena.");
+            }
+            healthBar = FindAnyObjectByType<HealthBar>();
+            if (healthBar == null)
+            {
+                Debug.LogError("No se encontró HealthBar en la escena.");
+            }
+            uiDocument = FindAnyObjectByType<UIDocument>();
+            if (uiDocument == null)
+            {
+                Debug.LogError("No se encontró UIDocument en la escena.");
+            }
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
+            Init();
+    }
 
 }

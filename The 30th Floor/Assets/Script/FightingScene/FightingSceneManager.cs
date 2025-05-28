@@ -11,10 +11,11 @@ public class FightingSceneManager : MonoBehaviour
     public TurnManager turnManager;
     public GameObject exitPrefab;
 
-    [SerializeField] private BoardManager boardManager;
-    private GameObject player;
+    public event Action OnTurnManagerReady;
+    public HealthBar healthBar;
 
-    private int turnNumber = 0;
+    public Transform deathPanel;
+    public TMPro.TextMeshProUGUI pointsText;
 
     public UIDocument uiDocument;
     private Label lbSpeed;
@@ -22,8 +23,10 @@ public class FightingSceneManager : MonoBehaviour
     private Label lbHealth;
     private Label lbMap;
     private Label lbPoints;
-    public event Action OnTurnManagerReady;
-    public HealthBar healthBar;
+    [SerializeField] private BoardManager boardManager;
+    private GameObject player;
+
+    private int turnNumber = 0;
 
 
     private void Awake()
@@ -41,13 +44,13 @@ public class FightingSceneManager : MonoBehaviour
         player = GameObject.FindWithTag("Player");
         Debug.Log("FightingSceneManager Awake FIN()");
 
-
     }
 
     void Start()
     {
         // AQUII SI ENTRA Y NADA EN NULL   
         Debug.Log("FightingSceneManager Start () Principio");
+        deathPanel.gameObject.SetActive(false);
 
         turnManager = new TurnManager();
 
@@ -78,7 +81,7 @@ public class FightingSceneManager : MonoBehaviour
         }
 
 
-        // Desactivar controller de exploración aquí si hace falta
+        // Desactivar controller de exploraciï¿½n aquï¿½ si hace falta
 
         var playerData = player.GetComponent<PlayerManager>().Data;
 
@@ -163,10 +166,10 @@ public class FightingSceneManager : MonoBehaviour
 
     private void OnCombatEnded()
     {
-        Debug.Log("¡Combate finalizado con éxito!");
+        Debug.Log("ï¿½Combate finalizado con ï¿½xito!");
 
-        // Aquí puedes:
-        // - Transicionar a la escena de exploración
+        // Aquï¿½ puedes:
+        // - Transicionar a la escena de exploraciï¿½n
         // - Mostrar pantalla de victoria
         // - Dar recompensas, etc.
 
@@ -177,7 +180,30 @@ public class FightingSceneManager : MonoBehaviour
         }
     }
 
+    public void Death()
+    {
+        ScoreManager.SubmitScore();
+        pointsText.text = PlayerManager.Instance.Data.totalPoints.ToString();
+        deathPanel.gameObject.SetActive(true);
+        uiDocument.enabled = false;
+        Destroy(player);
+    }
 
+    public void BackToMenu()
+    {
+        Debug.Log("Volviendo al menu principal...");
+        SceneManager.LoadScene("Menu");
+    }
+
+    public void playHoverSound()
+    {
+        AudioManager.Instance.PlaySFX("hoverSound");
+    }
+
+    public void playClickingSound()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+    }
 
 
 }

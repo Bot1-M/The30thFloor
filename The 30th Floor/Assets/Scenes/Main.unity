@@ -8222,10 +8222,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.08494209
-    y: 0
-    width: 1.0401543
-    height: 1.0274599
+    x: 0
+    y: 0.006818182
+    width: 1
+    height: 0.9873737
   near clip plane: 0
   far clip plane: 1000
   field of view: 34
@@ -8541,6 +8541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dungeonGenerator: {fileID: 1093134072}
   player: {fileID: 1395432898}
+  cameraFollow: {fileID: 519420033}
   healthBar: {fileID: 4691466}
   uiDocument: {fileID: 190324746}
 --- !u!4 &601956843
@@ -21631,6 +21632,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5482201118740251617, guid: 683181a8146e64f4285d1fc2c5a83af4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5864091347258034914, guid: 683181a8146e64f4285d1fc2c5a83af4, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

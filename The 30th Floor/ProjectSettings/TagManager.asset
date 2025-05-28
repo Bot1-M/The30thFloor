@@ -14,6 +14,7 @@ TagManager:
   - Decoration
   - Chest
   - SpawnPointText
+  - DeathPanel
   layers:
   - Default
   - TransparentFX

@@ -73,8 +73,12 @@ public class MenuInicial : MonoBehaviour
         }
         else
         {
+
             PlayerManager.Instance.Data.playerName = playerNameInputField.text;
+            PlayerManager.Instance.enabled = true;
             SceneManager.LoadScene("Main");
         }
     }
+
+
 }

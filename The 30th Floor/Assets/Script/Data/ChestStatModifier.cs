@@ -24,40 +24,19 @@ public class ChestStatModifier : MonoBehaviour
         switch (statIndex)
         {
             case 1:
-                if (healthBonus != 0)
-                {
-                    data.currentHealth += healthBonus;
-                    Debug.Log($"+{healthBonus} HP");
-                }
+                PlayerManager.AddHealth(data, healthBonus);
                 break;
             case 2:
-                if (maxHealthBonus != 0)
-                {
-                    data.maxHealth += maxHealthBonus;
-                    data.currentHealth = Mathf.Min(data.currentHealth, data.maxHealth);
-                    Debug.Log($"+{maxHealthBonus} Max HP");
-                }
+                PlayerManager.AddMaxHealth(data, maxHealthBonus);
                 break;
             case 3:
-                if (attackBonus != 0)
-                {
-                    data.attack += attackBonus;
-                    Debug.Log($"+{attackBonus} ATK");
-                }
+                PlayerManager.AddAttack(data, attackBonus);
                 break;
             case 4:
-                if (spaceMovementBonus != 0)
-                {
-                    data.spaceMovement += spaceMovementBonus;
-                    Debug.Log($"+{spaceMovementBonus} MOV");
-                }
+                PlayerManager.AddMovement(data, spaceMovementBonus);
                 break;
             case 5:
-                if (pointsBonus != 0)
-                {
-                    data.totalPoints += pointsBonus;
-                    Debug.Log($"+{pointsBonus} PTS");
-                }
+                PlayerManager.AddPoints(data, pointsBonus);
                 break;
         }
 

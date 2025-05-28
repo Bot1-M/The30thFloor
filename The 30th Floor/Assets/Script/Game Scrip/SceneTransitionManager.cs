@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class SceneTransitionManager : MonoBehaviour
 {
@@ -14,14 +15,23 @@ public class SceneTransitionManager : MonoBehaviour
 
     public void FadeToScene(string sceneName)
     {
-        // Aquí puedes bloquear el input del jugador
+        ClearInputBuffer();
+
+        // Bloquea temporalmente el input
         if (PlayerManager.Instance != null)
             PlayerManager.Instance.playerInput.enabled = false;
 
-        // Opcional: parar todo el juego si quieres hard freeze
-        // Time.timeScale = 0f;
-
         StartCoroutine(FadeOutAndLoadScene(sceneName));
+    }
+
+    private void ClearInputBuffer()
+    {
+        var playerInput = PlayerManager.Instance?.playerInput;
+        if (playerInput != null)
+        {
+            playerInput.DeactivateInput();
+            playerInput.ActivateInput(); 
+        }
     }
 
     private IEnumerator FadeIn()
@@ -36,14 +46,15 @@ public class SceneTransitionManager : MonoBehaviour
 
         fadeCanvasGroup.alpha = 0;
 
-        // Restaurar el tiempo cuando la nueva escena empieza
+        // Restaurar el tiempo si se usó Time.timeScale = 0
         Time.timeScale = 1f;
 
-        // Volver a permitir input si quieres
+        // Reactivar input con un frame de margen
+        yield return null;
+
         if (PlayerManager.Instance != null)
             PlayerManager.Instance.playerInput.enabled = true;
     }
-
 
     private IEnumerator FadeOutAndLoadScene(string sceneName)
     {
@@ -54,9 +65,10 @@ public class SceneTransitionManager : MonoBehaviour
             fadeCanvasGroup.alpha = t / fadeDuration;
             yield return null;
         }
+
         fadeCanvasGroup.alpha = 1;
 
-        // Cargar la siguiente escena (ya en negro)
+        // Cargar la nueva escena
         SceneManager.LoadScene(sceneName);
     }
 }

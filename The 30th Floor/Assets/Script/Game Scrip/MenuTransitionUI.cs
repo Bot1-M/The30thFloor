@@ -6,6 +6,8 @@ public class MenuTransitionUI : MonoBehaviour
     public RectTransform mainMenuUI;
     public RectTransform inputUI;
 
+    public RectTransform Config;
+
     public float slideDuration = 0.5f;
     public Vector2 offScreenPosition = new Vector2(0, -1080);
 
