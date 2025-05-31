@@ -19,7 +19,6 @@
 ## 🗂️ Estructura del proyecto
 
 Assets/
-│
 
 ├── Data/ → ScriptableObjects (enemigos, parámetros)
 
