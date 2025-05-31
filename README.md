@@ -67,7 +67,7 @@ Assets/
 
 ## 👨‍💻 Créditos y autoría
 
-Proyecto desarrollado por [Tu nombre aquí], como Trabajo de Fin de Curso.  
+Proyecto desarrollado por Miguelangel Mendez, como Trabajo de Fin de Curso.  
 Inspirado en títulos como *The Binding of Isaac*, *Fire Emblem*, y *Helltaker*.
 
 ---
