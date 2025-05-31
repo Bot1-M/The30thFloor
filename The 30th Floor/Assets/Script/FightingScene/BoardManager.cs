@@ -4,8 +4,15 @@ using System.Collections.Generic;
 using System;
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// Gestiona la generación y lógica del tablero de combate.
+/// Controla la colocación de tiles, ocupación de celdas y decoraciones.
+/// </summary>
 public class BoardManager : MonoBehaviour
 {
+    /// <summary>
+    /// Tipos de celda usados en el tablero.
+    /// </summary
     public enum CellType
     {
         Floor,
@@ -17,6 +24,9 @@ public class BoardManager : MonoBehaviour
         CornerBottomRight
     }
 
+    /// <summary>
+    /// Información interna de cada celda del tablero.
+    /// </summary>
     public class CellData
     {
         public bool isWalkable;
@@ -50,6 +60,9 @@ public class BoardManager : MonoBehaviour
         GenerateBoard();
     }
 
+    /// <summary>
+    /// Genera el tablero de juego con muros, suelo y decoraciones.
+    /// </summary>
     void GenerateBoard()
     {
         tilemap.ClearAllTiles();
@@ -205,7 +218,11 @@ public class BoardManager : MonoBehaviour
         return tilemap.GetCellCenterWorld(new Vector3Int(gridPosition.x, gridPosition.y, 0));
     }
 
-
+    /// <summary>
+    /// Instancia un objeto de salida en una celda válida del tablero.
+    /// </summary>
+    /// <param name="position">Posición del grid donde colocar la salida.</param>
+    /// <param name="exitPrefab">Prefab del objeto de salida.</param>
     public void SpawnExitAt(Vector2Int position, GameObject exitPrefab)
     {
         if (!IsInsideBoard(position))

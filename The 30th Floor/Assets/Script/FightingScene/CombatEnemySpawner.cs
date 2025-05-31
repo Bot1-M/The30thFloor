@@ -44,6 +44,9 @@ public class CombatEnemySpawner : MonoBehaviour
         int maxEnemies = GetMaxEnemiesForLevel(combatLevel);
         int numToSpawn = Random.Range(1, maxEnemies + 1);
 
+        bool forceReaper = combatLevel >= 5;
+        bool reaperSpawned = false;
+
         for (int i = 0; i < numToSpawn; i++)
         {
             if (validPositions.Count == 0) break;
@@ -52,7 +55,25 @@ public class CombatEnemySpawner : MonoBehaviour
             usedPositions.Add(position);
             validPositions.Remove(position);
 
-            EnemyBaseData selected = candidates[Random.Range(0, candidates.Count)];
+            EnemyBaseData selected;
+
+            if (forceReaper && !reaperSpawned)
+            {
+                selected = candidates.Find(e => e.enemyID == "Reaper");
+                if (selected != null)
+                {
+                    reaperSpawned = true;
+                }
+                else
+                {
+                    Debug.LogWarning("No se encontró un enemigo con ID 'Reaper' en el pool.");
+                    selected = candidates[Random.Range(0, candidates.Count)];
+                }
+            }
+            else
+            {
+                selected = candidates[Random.Range(0, candidates.Count)];
+            }
 
             if (selected.prefab == null)
             {
@@ -66,14 +87,19 @@ public class CombatEnemySpawner : MonoBehaviour
             GameObject go = Instantiate(selected.prefab, board.GridToWorldCenter(position), Quaternion.identity);
             board.SetOccupied(position, go);
 
-            var controller = go.GetComponent<EnemyTacticalController>();
-            if (controller != null)
+            // Manejo dinámico de cualquier controlador táctico que implemente ITurnTaker
+            var controller = go.GetComponent<ITurnTaker>();
+            if (controller is SlimeTacticalController slime)
             {
-                controller.Init(position, instanceData.currentHealth, instanceData.attack);
+                slime.Init(position, instanceData.currentHealth, instanceData.attack);
             }
-
+            else if (controller is ReaperTacticalController reaper)
+            {
+                reaper.Init(position, instanceData.currentHealth, instanceData.attack);
+            }
         }
     }
+
 
     private int GetMaxEnemiesForLevel(int level)
     {

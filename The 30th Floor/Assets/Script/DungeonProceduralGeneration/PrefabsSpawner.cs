@@ -33,7 +33,7 @@ public class PrefabsSpawner : MonoBehaviour
     [SerializeField] private int maxChestsPerRoom = 1;
 
     [Range(0f, 1f)]
-    [SerializeField] private float chestSpawnChance = 0.3f; // 30% por sala
+    [SerializeField] private float chestSpawnChance = 0.3f;
 
 
     [Header("Salida de la dungeon")]
@@ -96,7 +96,8 @@ public class PrefabsSpawner : MonoBehaviour
 
     private void ClearTaggedPrefabs()
     {
-        string[] tagsToClear = { "Slime", "Reaper", "Coin", "Candel", "Decoration", "Chest" };
+        // , "Reaper"
+        string[] tagsToClear = { "Slime", "Coin", "Candel", "Decoration", "Chest", "Reaper" };
         int deleted = 0;
 
         foreach (string tag in tagsToClear)
@@ -180,7 +181,20 @@ public class PrefabsSpawner : MonoBehaviour
             if (!HasClearanceAround(pos)) continue;
             if (!HasItemSpacing(pos, occupied, itemSpacingRadius)) continue;
 
-            var go = Instantiate(prefabs[Random.Range(0, prefabs.Count)], new Vector3(pos.x, pos.y, 0f), Quaternion.identity);
+            GameObject selectedPrefab;
+
+            int level = PlayerManager.Instance.Data.level;
+
+            if (level <= 4)
+            {
+                selectedPrefab = prefabs[0];
+            }
+            else
+            {
+                selectedPrefab = prefabs[Random.Range(0, prefabs.Count)];
+            }
+
+            var go = Instantiate(selectedPrefab, new Vector3(pos.x, pos.y, 0f), Quaternion.identity);
             room.AddEnemy(go);
             occupied.Add(pos);
             spawned++;

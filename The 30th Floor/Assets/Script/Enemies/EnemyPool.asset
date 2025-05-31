@@ -15,3 +15,5 @@ MonoBehaviour:
   enemies:
   - enemyData: {fileID: 11400000, guid: 4430e2939a1e78948809dbc9e67f2193, type: 2}
     minLevelToAppear: 1
+  - enemyData: {fileID: 11400000, guid: be1cec0792eae554abfc0a1b08fcf5bc, type: 2}
+    minLevelToAppear: 5

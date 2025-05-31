@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Gestor de audio principal para el juego.
+/// Controla la música de fondo, efectos de sonido (SFX) y sonidos de pasos.
+/// Implementa patrón Singleton para acceso global.
+/// </summary>
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }

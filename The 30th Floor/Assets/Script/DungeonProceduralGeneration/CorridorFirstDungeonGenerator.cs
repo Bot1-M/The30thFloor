@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Generador procedural de mazmorras basado en la estrategia "Corridor First".
+/// Primero se crean corredores lineales y luego se expanden habitaciones en posiciones estratégicas.
+/// Hereda de <see cref="SimpleRandomWalkDungeonGenerator"/>.
+/// </summary>
 public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
 {
     public HashSet<Vector2Int> FloorPositions { get; private set; }
@@ -19,11 +24,17 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
     [Range(0.1f, 1)]
     private float roomPercent = 1f;
 
+    /// <summary>
+    /// Punto de entrada desde la clase base. Ejecuta la generación procedural.
+    /// </summary>
     protected override void RunProceduralGeneration()
     {
         CorridorFirstGeneration();
     }
 
+    /// <summary>
+    /// Genera la mazmorra aplicando el algoritmo Corridor First.
+    /// </summary>
     private void CorridorFirstGeneration()
     {
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
@@ -57,6 +68,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         OnDungeonGenerated?.Invoke();
     }
 
+    /// <summary>
+    /// Aumenta el tamaño de cada punto del corredor original en un bloque de 3x3.
+    /// </summary>
     private List<Vector2Int> IncreaseCorridorSizeByThree(List<Vector2Int> corridor)
     {
         List<Vector2Int> newCorridor = new List<Vector2Int>();
@@ -73,6 +87,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return newCorridor;
     }
 
+    /// <summary>
+    /// Crea habitaciones en los extremos muertos si aún no existen.
+    /// </summary>
     private void CreateRoomsAtDeadEnd(List<Vector2Int> deadEnds, HashSet<Vector2Int> roomFloors)
     {
         foreach (var position in deadEnds)
@@ -85,6 +102,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         }
     }
 
+    /// <summary>
+    /// Busca todas las posiciones de suelo que tienen un solo vecino: considerados extremos muertos.
+    /// </summary>
     private List<Vector2Int> FindAllDeadEnds(HashSet<Vector2Int> floorPositions)
     {
         List<Vector2Int> deadEnds = new List<Vector2Int>();
@@ -102,6 +122,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return deadEnds;
     }
 
+    /// <summary>
+    /// Crea habitaciones a partir de puntos candidatos seleccionados aleatoriamente.
+    /// </summary>
     private HashSet<Vector2Int> CreateRooms(HashSet<Vector2Int> potentialRoomPositions)
     {
         HashSet<Vector2Int> roomPositions = new HashSet<Vector2Int>();
@@ -117,6 +140,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return roomPositions;
     }
 
+    /// <summary>
+    /// Crea corredores desde la posición inicial, los añade al conjunto de suelo y marca posiciones de habitación.
+    /// </summary>
     private List<List<Vector2Int>> CreateCorridors(HashSet<Vector2Int> floorPositions, HashSet<Vector2Int> potentialRoomPositions)
     {
         var currentPosition = startPosition;
@@ -134,6 +160,9 @@ public class CorridorFirstDungeonGenerator : SimpleRandomWalkDungeonGenerator
         return corridors;
     }
 
+    /// <summary>
+    /// Agrupa posiciones conectadas en clústeres de habitaciones representadas como objetos <see cref="DungeonRoom"/>.
+    /// </summary>
     public List<DungeonRoom> GetRoomClusters(HashSet<Vector2Int> roomPositions)
     {
         List<DungeonRoom> clusters = new List<DungeonRoom>();

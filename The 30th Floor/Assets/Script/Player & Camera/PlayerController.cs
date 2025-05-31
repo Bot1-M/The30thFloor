@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,8 +11,9 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private bool facingRight = true;
 
+
     [Header("Menu de pausa")]
-    [SerializeField] private GameObject pauseMenu;
+    public GameObject pauseMenu;
 
     private bool isPaused = false;
 
@@ -22,6 +25,8 @@ public class PlayerController : MonoBehaviour
     public void Init()
     {
         rb = GetComponent<Rigidbody2D>();
+        ResetVisualDefaults();
+        MirrorPlayer();
         SpawnPlayer();
     }
 
@@ -109,11 +114,29 @@ public class PlayerController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Finish"))
         {
-            PlayerManager.Instance.Data.level += 1;
-            Debug.Log("Salida activada. Regenerando dungeon...");
-            //GameManager.Instance.dungeonGenerator.GenerateDungeon();
-            PlayerManager.Instance.explorationController.Init();
+            GameManager.Instance.AdvanceToNextLevel();
         }
     }
+
+    public void setPause(GameObject pause)
+    {
+        pauseMenu = pause;
+    }
+
+    public void ResetVisualDefaults()
+    {
+        // Forzar rotación a 0
+        transform.rotation = Quaternion.identity;
+
+        // Forzar escala a 0.4 (derecha por defecto)
+        Vector3 defaultScale = new Vector3(0.4f, 0.4f, 0.4f);
+        transform.localScale = defaultScale;
+
+        // Set facingRight en base a la escala
+        facingRight = transform.localScale.x > 0;
+
+        Debug.Log("Visuales del jugador reiniciados: rotación 0, escala 0.4, facingRight=" + facingRight);
+    }
+
 }
 

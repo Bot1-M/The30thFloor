@@ -1,11 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
+
+
+/// <summary>
+/// Administra la escena de combate táctico. Coordina el tablero, HUD, sistema de turnos y transiciones.
+/// </summary>
 public class FightingSceneManager : MonoBehaviour
 {
+    /// <summary>
+    /// Instancia única (singleton) accesible globalmente.
+    /// </summary>
     public static FightingSceneManager Instance { get; private set; }
 
     public TurnManager turnManager;
@@ -15,19 +23,18 @@ public class FightingSceneManager : MonoBehaviour
     public HealthBar healthBar;
 
     public Transform deathPanel;
-    public TMPro.TextMeshProUGUI pointsText;
+    public TextMeshProUGUI pointsText;
 
-    public UIDocument uiDocument;
-    private Label lbSpeed;
-    private Label lbAttack;
-    private Label lbHealth;
-    private Label lbMap;
-    private Label lbPoints;
+    public GameObject pauseMenu;
+
+    [SerializeField] private TMP_Text lbSpeed;
+    [SerializeField] private TMP_Text lbAttack;
+    [SerializeField] private TMP_Text lbHealth;
+    [SerializeField] private TMP_Text lbMap;
+    [SerializeField] private TMP_Text lbPoints;
+
     [SerializeField] private BoardManager boardManager;
     private GameObject player;
-
-    private int turnNumber = 0;
-
 
     private void Awake()
     {
@@ -69,6 +76,7 @@ public class FightingSceneManager : MonoBehaviour
         if (boardManager.IsReady)
         {
             SpawnPlayer();
+            PlayerManager.Instance.tacticalController.SetPauseMenu(pauseMenu);
             boardManager.SpawnExitAt(new Vector2Int(16, 7), exitPrefab);
         }
         else
@@ -88,15 +96,15 @@ public class FightingSceneManager : MonoBehaviour
         healthBar.SetMaxHealth(playerData.maxHealth);
         healthBar.SetHealth(playerData.currentHealth);
 
-        SetUpUIDocument();
         UpdateUI();
 
         List<ITurnTaker> turnOrder = new();
+
         turnOrder.Add(player.GetComponent<PlayerTacticalController>());
 
         foreach (var enemy in GameObject.FindGameObjectsWithTag("EnemyFighting"))
         {
-            var enemyTaker = enemy.GetComponent<EnemyTacticalController>();
+            var enemyTaker = enemy.GetComponent<ITurnTaker>();
             if (enemyTaker != null)
                 turnOrder.Add(enemyTaker);
         }
@@ -104,8 +112,12 @@ public class FightingSceneManager : MonoBehaviour
         turnManager.InitTurnOrder(turnOrder);
         Debug.Log("FightingSceneManager Start FIN()");
 
+        turnManager.OnCombatFinished += OnCombatFinished;
     }
 
+    /// <summary>
+    /// Coloca al jugador en su celda inicial del combate.
+    /// </summary>
     private void SpawnPlayer()
     {
         Debug.Log("Board listo, ejecutando Spawn del jugador.");
@@ -120,30 +132,15 @@ public class FightingSceneManager : MonoBehaviour
         }
     }
 
-    private void SetUpUIDocument()
-    {
-        if (uiDocument == null)
-        {
-            Debug.LogError("UIDocument no asignado.");
-            return;
-        }
-        lbHealth = uiDocument.rootVisualElement.Q<Label>("lbHealth");
-        lbAttack = uiDocument.rootVisualElement.Q<Label>("lbAttack");
-        lbSpeed = uiDocument.rootVisualElement.Q<Label>("lbSpeed");
-        lbMap = uiDocument.rootVisualElement.Q<Label>("lbMap");
-        lbPoints = uiDocument.rootVisualElement.Q<Label>("lbFightingPoints");
-    }
 
+    /// <summary>
+    /// Actualiza la interfaz de usuario con los datos del jugador.
+    /// </summary
     public void UpdateUI()
     {
-        if (uiDocument == null)
-        {
-            Debug.LogError("UIDocument no asignado.");
-            return;
-        }
         if (player == null)
         {
-            Debug.LogError("Player no encontrado.");
+            Debug.Log("Player no encontrado.");
             return;
         }
         var playerData = player.GetComponent<PlayerManager>().Data;
@@ -160,39 +157,39 @@ public class FightingSceneManager : MonoBehaviour
         UpdateUI();
     }
 
-    ////////
-    ////// CODIGO PARA TERMINAR LA FIGHTING SCENE
-
-
-    private void OnCombatEnded()
+    /// <summary>
+    /// Método llamado cuando el combate finaliza. Inicia la transición a la escena principal.
+    /// </summary>
+    private void OnCombatFinished()
     {
-        Debug.Log("�Combate finalizado con �xito!");
-
-        // Aqu� puedes:
-        // - Transicionar a la escena de exploraci�n
-        // - Mostrar pantalla de victoria
-        // - Dar recompensas, etc.
-
-        SceneTransitionManager sceneTransition = FindObjectOfType<SceneTransitionManager>();
-        if (sceneTransition != null)
-        {
-            sceneTransition.FadeToScene("Main");
-        }
+        Debug.Log("Combate finalizado. Volviendo a la escena principal...");
+        AudioManager.Instance.PlaySFX("resultPoint");
+        StartCoroutine(DelayedReturnToMain());
     }
 
+    /// <summary>
+    /// Espera 1 segundo y transiciona de vuelta a la escena "Main".
+    /// </summary>
+    private IEnumerator DelayedReturnToMain()
+    {
+        yield return new WaitForSeconds(1f);
+
+        var transition = FindAnyObjectByType<SceneTransitionManager>();
+        if (transition != null)
+            transition.FadeToScene("Main");
+        else
+            SceneManager.LoadScene("Main");
+    }
+
+    /// <summary>
+    /// Muestra el panel de muerte y destruye al jugador.
+    /// </summary
     public void Death()
     {
         ScoreManager.SubmitScore();
         pointsText.text = PlayerManager.Instance.Data.totalPoints.ToString();
         deathPanel.gameObject.SetActive(true);
-        uiDocument.enabled = false;
         Destroy(player);
-    }
-
-    public void BackToMenu()
-    {
-        Debug.Log("Volviendo al menu principal...");
-        SceneManager.LoadScene("Menu");
     }
 
     public void playHoverSound()
@@ -205,6 +202,34 @@ public class FightingSceneManager : MonoBehaviour
         AudioManager.Instance.PlaySFX("clickSound");
     }
 
+    public void goBackToMenu()
+    {
+        AudioManager.Instance.PlaySFX("finalResultShow");
+        if (SceneManager.GetActiveScene().name == "Menu")
+        {
+            Debug.Log("Ya estás en el menú.");
+            return;
+        }
+
+        Destroy(player.gameObject);
+        unFreeze();
+        SceneManager.LoadScene("Menu");
+
+        gameObject.SetActive(false);
+
+    }
+
+    private void unFreeze()
+    {
+        Time.timeScale = 1f;
+    }
+
+    public void exitGame()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+        Debug.Log("Saliendo del juego...");
+        Application.Quit();
+    }
 
 }
 

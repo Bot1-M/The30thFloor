@@ -9,6 +9,6 @@ public class EnemyBaseData : ScriptableObject
     public int attack;
 
     public virtual int GetScaledHealth(int level) => baseHealth + level * 5;
-    public virtual int GetScaledAttack(int level) => attack + level / 2;
+    public virtual int GetScaledAttack(int level) => attack + (level / 2);
 
 }

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class SlimeCombatTrigger : MonoBehaviour
 {
@@ -8,6 +7,7 @@ public class SlimeCombatTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Time.timeScale = 0f; // Pausar el juego
             SceneTransitionManager sceneTransition = FindAnyObjectByType<SceneTransitionManager>();
             if (sceneTransition != null)
             {

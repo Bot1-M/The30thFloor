@@ -3,8 +3,14 @@ using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Menú de configuración del juego.
+/// Permite ajustar resolución, volumen, calidad gráfica, modo pantalla completa
+/// y navegar entre escenas del menú o salir del juego.
+/// </summary>
 public class SettingsMenu : MonoBehaviour
 {
     public AudioMixer audioMixer;
@@ -34,6 +40,7 @@ public class SettingsMenu : MonoBehaviour
         }
 
         resolutionDropdown.AddOptions(options);
+
     }
 
     public void SetVolume(float volume)
@@ -50,8 +57,6 @@ public class SettingsMenu : MonoBehaviour
     {
         audioMixer.SetFloat("SFXVolume", volume);
     }
-
-
 
     public void SetQuality(int qualityIndex)
     {
@@ -77,5 +82,51 @@ public class SettingsMenu : MonoBehaviour
         }
         Resolution selectedResolution = resolutions[resolutionIndex];
         Screen.SetResolution(selectedResolution.width, selectedResolution.height, Screen.fullScreen);
+    }
+
+
+    public void goBackToMenu()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+        if (SceneManager.GetActiveScene().name == "Menu")
+        {
+            Debug.Log("Ya estás en el menú.");
+            return;
+        }
+
+        GameObject player = PlayerManager.Instance.gameObject;
+
+        if (player != null)
+        {
+            Destroy(player);
+        }
+
+        if (GameManager.Instance != null)
+        {
+            Destroy(GameManager.Instance.gameObject);
+        }
+
+        unFreeze();
+        SceneManager.LoadScene("Menu");
+
+        gameObject.SetActive(false);
+
+    }
+
+    private void unFreeze()
+    {
+        Time.timeScale = 1f;
+    }
+
+    public void playHoverSound()
+    {
+        AudioManager.Instance.PlaySFX("hoverSound");
+    }
+
+    public void exitGame()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+        Debug.Log("Saliendo del juego...");
+        Application.Quit();
     }
 }

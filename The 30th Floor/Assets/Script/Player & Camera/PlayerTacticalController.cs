@@ -5,13 +5,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-using static BoardManager;
 
+
+/// <summary>
+/// Controlador táctico del jugador durante los combates por turnos.
+/// Gestiona movimiento por celdas, ataques, orientación y eventos de turno.
+/// </summary>
 public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 {
     public int fightPoints = 0;
     public Vector2Int Cell => cellPos;
 
+    [SerializeField] private GameObject pauseMenuCombat;
     private BoardManager board;
     private Vector2Int cellPos;
 
@@ -39,12 +44,30 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
     private bool facingRight = true;
 
     private Action onTurnComplete;
+
+    /// <summary>
+    /// Indica si el jugador se está moviendo actualmente.
+    /// </summary>
     public bool IsMoving() => isMoving;
+
+    private bool isPaused = false;
 
     void Update()
     {
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            TogglePauseMenu();
+            return;
+        }
+
         if (!subscribedToTurnEvent)
             TrySubscribeToTurnSystem();
+
+
+
+        if (isPaused)
+            return;
+
 
         if (isMoving)
         {
@@ -78,6 +101,10 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
     }
 
+
+    /// <summary>
+    /// Mueve al jugador a una celda específica.
+    /// </summary>
     public void MoveTo(Vector2Int cell, bool immediate = false)
     {
         if (animator == null)
@@ -109,6 +136,9 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         Debug.Log($" MoveTo: {cell} {(immediate ? "[instant]" : "[smooth]")}");
     }
 
+    /// <summary>
+    /// Ejecuta la lógica cuando se hace clic en una celda válida.
+    /// </summary>
     private void HandleMovementTo(Vector2Int target)
     {
         if (hasActed)
@@ -139,6 +169,9 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
     }
 
+    /// <summary>
+    /// Detecta clic y gestiona el movimiento si es válido.
+    /// </summary>
     private void TryHandleMouseClick()
     {
         if (!Mouse.current.leftButton.wasPressedThisFrame) return;
@@ -171,6 +204,9 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                (data.occupant != null && data.occupant.CompareTag("ExitCombat"));
     }
 
+    /// <summary>
+    /// Reduce la vida del jugador y actualiza la interfaz.
+    /// </summary>
     public void TakeDamage(int amount)
     {
         if (animator != null) PlayerManager.Instance.animator.SetTrigger("isDamage");
@@ -184,11 +220,15 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         if (data.currentHealth <= 0)
         {
+            AudioManager.Instance.PlaySFX("deathMaleCry");
             FightingSceneManager.Instance.Death();
             Debug.Log("El jugador ha muerto.");
         }
     }
 
+    /// <summary>
+    /// Muestra el rango de movimiento basado en la velocidad del jugador.
+    /// </summary>
     private void ShowMovementRange()
     {
         if (board == null) return;
@@ -236,8 +276,17 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         return result;
     }
+
+    /// <summary>
+    /// Posiciona al jugador en el tablero y configura componentes.
+    /// </summary>
     public void Spawn(BoardManager boardManager, Vector2Int cell)
     {
+        if (pauseMenuCombat == null)
+        {
+            pauseMenuCombat = GameObject.FindGameObjectWithTag("SettingsMenu");
+        }
+
         SetHealthBar();
 
         board = boardManager;
@@ -264,7 +313,6 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
     private void OnBoardReadyForPlayer()
     {
         board.OnBoardReady -= OnBoardReadyForPlayer;
-        //boardIsReady = true;
         ShowMovementRange();
     }
 
@@ -288,12 +336,6 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         ShowMovementRange(); // Mostrar las celdas en el primer turno
     }
 
-
-    private void OnDisable()
-    {
-        //if (FightingSceneManager.Instance != null)
-        //    FightingSceneManager.Instance.turnManager.OnTick -= OnTurnStarted;
-    }
     private List<Vector2Int> GetPath(Vector2Int start, Vector2Int end)
     {
         Dictionary<Vector2Int, Vector2Int> cameFrom = new();
@@ -396,28 +438,8 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
             return;
         }
 
-        if (!IsEnemyAdjacent())
-        {
-            Debug.Log("No hay enemigos adyacentes.");
-            return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            board.ClearOverlay();
-            AudioManager.Instance.PlaySFX("hitSound");
-            PlayerManager.Instance.animator.SetTrigger("Attack");
-            hasActed = true;
-            StartCoroutine(AttackRoutine());
-        }
-    }
-
-
-
-    private bool IsEnemyAdjacent()
-    {
+        // Buscar enemigo adyacente primero
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
         foreach (var dir in directions)
         {
             Vector2Int adjacent = cellPos + dir;
@@ -425,13 +447,24 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
             if (cell != null && cell.isOccupied && cell.occupant != null)
             {
-                if (cell.occupant.GetComponent<EnemyTacticalController>() != null)
+                var enemy = cell.occupant.GetComponent<SlimeTacticalController>();
+                if (enemy != null)
                 {
-                    return true;
+                    // FLIPEAR ANTES DE ATACAR
+                    Vector3 enemyPos = board.GridToWorldCenter(adjacent);
+                    FlipIfNeeded(transform.position, enemyPos);
+
+                    break;
                 }
             }
         }
-        return false;
+
+        // Ahora sí: atacar
+        board.ClearOverlay();
+        AudioManager.Instance.PlaySFX("hitSound");
+        PlayerManager.Instance.animator.SetTrigger("Attack");
+        hasActed = true;
+        StartCoroutine(AttackRoutine());
     }
 
     private bool TryAttackEnemy()
@@ -445,7 +478,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
             if (cell != null && cell.isOccupied && cell.occupant != null)
             {
-                var enemy = cell.occupant.GetComponent<EnemyTacticalController>();
+                var enemy = cell.occupant.GetComponent<SlimeTacticalController>();
                 if (enemy != null)
                 {
                     Vector3 enemyPos = board.GridToWorldCenter(adjacent);
@@ -483,19 +516,34 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         {
             PlayerManager.Instance.animator.SetBool("isWalking", false);
             PlayerManager.Instance.GetComponent<SpriteRenderer>().enabled = false;
-            SceneManager.LoadScene("Main");
-            //SceneTransitionManager stm = FindAnyObjectByType<SceneTransitionManager>();
-            //if (stm != null)
-            //{
-            //    stm.FadeToScene("Main");
-            //}
-            //else
-            //{
-            //    Debug.LogWarning("SceneTransitionManager no encontrado.");
-            //    SceneManager.LoadScene("Main"); // fallback
-            //}
+            SceneTransitionManager stm = FindAnyObjectByType<SceneTransitionManager>();
+            if (stm != null)
+            {
+                stm.FadeToScene("Main");
+                board.ClearOverlay();
+                Time.timeScale = 0f; // Pausar el juego
+            }
+            else
+            {
+                Debug.LogWarning("SceneTransitionManager no encontrado.");
+                SceneManager.LoadScene("Main"); // fallback
+                board.ClearOverlay();
+                Time.timeScale = 0f; // Pausar el juego
+            }
         }
     }
 
+    private void TogglePauseMenu()
+    {
+        isPaused = !isPaused;
+
+        if (pauseMenuCombat != null)
+            pauseMenuCombat.SetActive(isPaused);
+    }
+
+    public void SetPauseMenu(GameObject pauseMenu)
+    {
+        this.pauseMenuCombat = pauseMenu;
+    }
 
 }

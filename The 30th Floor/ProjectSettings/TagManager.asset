@@ -16,6 +16,7 @@ TagManager:
   - SpawnPointText
   - DeathPanel
   - ExitCombat
+  - SettingsMenu
   layers:
   - Default
   - TransparentFX

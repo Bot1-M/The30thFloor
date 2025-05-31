@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 2678329528904179334}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.511, y: 0.635, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -172,4 +172,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FloatingTextPrefab: {fileID: 2783685028125585990, guid: 1fb82d97be4279f4fbf2d99ec2157cac, type: 3}
   health: 5
-  attackPower: 2
+  attackPower: 3
+  playerTransform: {fileID: 0}
