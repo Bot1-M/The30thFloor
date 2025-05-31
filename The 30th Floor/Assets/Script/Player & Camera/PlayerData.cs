@@ -10,6 +10,6 @@ public class PlayerData
 
     // Atributos de combate
     public int attack = 5;
-    public int spaceMovement = 3;
+    public int spaceMovement = 1;
 
 }
