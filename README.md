@@ -21,11 +21,17 @@
 Assets/
 │
 ├── Data/ → ScriptableObjects (enemigos, parámetros)
+
 ├── DungeonProceduralGeneration/ → Lógica de generación procedural
+
 ├── Enemies/ → IA, controladores y datos de enemigos
+
 ├── FightingScene/ → Sistema de combate, tablero, turnos
+
 ├── Game Scrip/ → Gestores globales (GameManager, Audio, Transiciones)
+
 ├── Player & Camera/ → Control del jugador y sistema de input
+
 └── UI/ → HUD y elementos visuales (barra de vida, textos)
 
 ---
