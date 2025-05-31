@@ -2,6 +2,7 @@
 
 **The 30th Floor** es un videojuego 2D tipo **roguelike** con combates tácticos por turnos, desarrollado en Unity como parte de un proyecto de fin de curso. El jugador deberá explorar mazmorras generadas de forma procedural, recoger mejoras y enfrentarse a enemigos mientras intenta avanzar de piso en piso… hasta llegar al número 30.
 
+Enlace al juego: https://bot1-05.itch.io/the-30th-floor
 ---
 
 ## 🎮 Características principales
