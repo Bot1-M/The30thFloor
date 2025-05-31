@@ -15,23 +15,12 @@ public class SceneTransitionManager : MonoBehaviour
 
     public void FadeToScene(string sceneName)
     {
-        ClearInputBuffer();
 
         // Bloquea temporalmente el input
         if (PlayerManager.Instance != null)
-            PlayerManager.Instance.playerInput.enabled = false;
+            //PlayerManager.Instance.playerInput.enabled = false;
 
-        StartCoroutine(FadeOutAndLoadScene(sceneName));
-    }
-
-    private void ClearInputBuffer()
-    {
-        var playerInput = PlayerManager.Instance?.playerInput;
-        if (playerInput != null)
-        {
-            playerInput.DeactivateInput();
-            playerInput.ActivateInput(); 
-        }
+            StartCoroutine(FadeOutAndLoadScene(sceneName));
     }
 
     private IEnumerator FadeIn()

@@ -168,12 +168,13 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
             return false;
 
         return !data.isOccupied ||
-               (data.occupant != null && data.occupant.CompareTag("Finish"));
+               (data.occupant != null && data.occupant.CompareTag("ExitCombat"));
     }
 
     public void TakeDamage(int amount)
     {
         if (animator != null) PlayerManager.Instance.animator.SetTrigger("isDamage");
+        AudioManager.Instance.PlaySFX("hitSound");
         var data = PlayerManager.Instance.Data;
         data.currentHealth -= amount;
         data.currentHealth = Mathf.Max(0, data.currentHealth);
@@ -223,7 +224,7 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
                 {
                     var cellData = board.GetCellData(next);
                     if (cellData != null && (!cellData.isOccupied ||
-                        (cellData.occupant != null && cellData.occupant.CompareTag("Finish"))))
+                        (cellData.occupant != null && cellData.occupant.CompareTag("ExitCombat"))))
                     {
                         visited.Add(next);
                         queue.Enqueue((next, steps + 1));
@@ -404,14 +405,14 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
         if (Input.GetKeyDown(KeyCode.E))
         {
             board.ClearOverlay();
+            AudioManager.Instance.PlaySFX("hitSound");
             PlayerManager.Instance.animator.SetTrigger("Attack");
-            if (TryAttackEnemy())
-            {
-                hasActed = true;
-                onTurnComplete?.Invoke();
-            }
+            hasActed = true;
+            StartCoroutine(AttackRoutine());
         }
     }
+
+
 
     private bool IsEnemyAdjacent()
     {
@@ -459,22 +460,40 @@ public class PlayerTacticalController : MonoBehaviour, ITurnTaker
 
         return false;
     }
+    private IEnumerator AttackRoutine()
+    {
+        yield return new WaitUntil(() => animator.GetCurrentAnimatorStateInfo(0).IsTag("Attack"));
+
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+        float attackDuration = state.length;
+
+        yield return new WaitForSeconds(attackDuration); // espera a que termine
+
+        if (TryAttackEnemy())
+        {
+            Debug.Log("Ataque completado, finalizando turno...");
+        }
+
+        onTurnComplete?.Invoke(); // continuar con el turno
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Finish"))
+        if (collision.CompareTag("ExitCombat"))
         {
             PlayerManager.Instance.animator.SetBool("isWalking", false);
-            SceneTransitionManager stm = FindAnyObjectByType<SceneTransitionManager>();
-            if (stm != null)
-            {
-                stm.FadeToScene("Main");
-            }
-            else
-            {
-                Debug.LogWarning("SceneTransitionManager no encontrado.");
-                SceneManager.LoadScene("Main"); // fallback
-            }
+            PlayerManager.Instance.GetComponent<SpriteRenderer>().enabled = false;
+            SceneManager.LoadScene("Main");
+            //SceneTransitionManager stm = FindAnyObjectByType<SceneTransitionManager>();
+            //if (stm != null)
+            //{
+            //    stm.FadeToScene("Main");
+            //}
+            //else
+            //{
+            //    Debug.LogWarning("SceneTransitionManager no encontrado.");
+            //    SceneManager.LoadScene("Main"); // fallback
+            //}
         }
     }
 

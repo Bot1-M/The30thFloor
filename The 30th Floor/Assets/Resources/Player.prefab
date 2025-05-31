@@ -257,19 +257,7 @@ MonoBehaviour:
     m_ActionId: 6749a051-94ec-4c84-8c0b-b7d6fc3c875e
     m_ActionName: UI/TrackedDeviceOrientation
   - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 4979818201862751826}
-        m_TargetAssemblyTypeName: PlayerTacticalController, Assembly-CSharp
-        m_MethodName: OnMove
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_ActionId: 24479768-9778-40f3-9d60-43a15eae5143
     m_ActionName: 'Combat/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]'
   - m_PersistentCalls:
@@ -320,6 +308,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
+  pauseMenu: {fileID: 0}
 --- !u!114 &8024874868577587277
 MonoBehaviour:
   m_ObjectHideFlags: 0

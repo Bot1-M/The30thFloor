@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,6 +18,9 @@ public class AudioManager : MonoBehaviour
 
     Dictionary<string, AudioClip> sfxDict;
 
+    private Coroutine walkingCoroutine;
+    public float stepInterval = 0.4f;
+
     private void Awake()
     {
         if (Instance == null)
@@ -32,11 +36,6 @@ public class AudioManager : MonoBehaviour
         BuildDictionaries();
     }
 
-    //private void Start()
-    //{
-    //    PlayMusic(explorationClips[Random.Range(0, explorationClips.Length)]);
-    //}
-
     private void BuildDictionaries()
     {
 
@@ -48,31 +47,35 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-
-    public void PlayWalkingSound()
+    public void StartWalkingSound()
     {
-        if (!sfxSource.isPlaying)
-        {
-            if (sfxDict.TryGetValue("walkingSound", out var clip))
-            {
-                sfxSource.loop = true;
-                sfxSource.clip = clip;
-                sfxSource.pitch = Random.Range(0.8f, 1.2f);
-                sfxSource.Play();
-            }
-            else
-            {
-                Debug.LogWarning("SFX 'walkingSound' no encontrado en el diccionario.");
-            }
-        }
+        if (walkingCoroutine == null)
+            walkingCoroutine = StartCoroutine(WalkingLoop());
     }
-
 
     public void StopWalkingSound()
     {
-        sfxSource.loop = false;
-        if (sfxSource.isPlaying)
-            sfxSource.Stop();
+        if (walkingCoroutine != null)
+        {
+            StopCoroutine(walkingCoroutine);
+            walkingCoroutine = null;
+        }
+    }
+
+    private IEnumerator WalkingLoop()
+    {
+        if (!sfxDict.TryGetValue("walkingSound", out var clip))
+        {
+            Debug.LogWarning("SFX 'walkingSound' no encontrado en el diccionario.");
+            yield break;
+        }
+
+        while (true)
+        {
+            sfxSource.pitch = Random.Range(0.9f, 1.1f);
+            sfxSource.PlayOneShot(clip);
+            yield return new WaitForSeconds(stepInterval);
+        }
     }
 
     public void PlaySFX(string name)
@@ -89,12 +92,14 @@ public class AudioManager : MonoBehaviour
 
     public void PlayMusic(AudioClip music)
     {
+        musicSource.loop = true;
         musicSource.clip = music;
         musicSource.Play();
     }
 
     public void StopMusic()
     {
+        musicSource.loop = false;
         if (musicSource.isPlaying)
             musicSource.Stop();
     }

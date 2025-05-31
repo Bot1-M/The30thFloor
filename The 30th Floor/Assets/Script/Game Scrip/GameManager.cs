@@ -1,6 +1,5 @@
-using System;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
@@ -77,6 +76,15 @@ public class GameManager : MonoBehaviour
                 Random.Range(0, AudioManager.Instance.explorationClips.Length)]);
         }
 
+        if (cameraFollow == null)
+        {
+            cameraFollow = FindAnyObjectByType<CameraFollow>();
+            if (cameraFollow == null)
+            {
+                Debug.Log("No se encontró CameraFollow en la escena.");
+                return;
+            }
+        }
         cameraFollow.Init(player.transform);
 
     }
@@ -85,6 +93,40 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         UpdateUI();
+    }
+
+    public void goBackToMenu()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+        if (SceneManager.GetActiveScene().name == "Menu")
+        {
+            Debug.Log("Ya estás en el menú.");
+            return;
+        }
+
+        Destroy(player.gameObject);
+        unFreeze();
+        SceneManager.LoadScene("Menu");
+
+        gameObject.SetActive(false);
+
+    }
+
+    private void unFreeze()
+    {
+        Time.timeScale = 1f;
+    }
+
+    public void playHoverSound()
+    {
+        AudioManager.Instance.PlaySFX("hoverSound");
+    }
+
+    public void exitGame()
+    {
+        AudioManager.Instance.PlaySFX("clickSound");
+        Debug.Log("Saliendo del juego...");
+        Application.Quit();
     }
 
     public void setLabelUiDoc()
@@ -122,6 +164,7 @@ public class GameManager : MonoBehaviour
     {
         if (scene.name == "Main")
         {
+            if (gameObject.IsUnityNull()) return;
             gameObject.SetActive(true);
 
             player = PlayerManager.Instance;
@@ -149,12 +192,12 @@ public class GameManager : MonoBehaviour
             {
                 Debug.LogError("No se encontró UIDocument en la escena.");
             }
+            Init();
         }
         else
         {
             gameObject.SetActive(false);
         }
-            Init();
     }
 
 }

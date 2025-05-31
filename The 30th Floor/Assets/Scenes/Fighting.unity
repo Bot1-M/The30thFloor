@@ -1149,10 +1149,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.006802721
-    width: 1
-    height: 0.9876544
+    x: 0.0882353
+    y: 0
+    width: 1.0265985
+    height: 1.0136364
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -1331,7 +1331,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 163a165e38ae1b04b9a0540c1ace5693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  exitPrefab: {fileID: 1567506778191067635, guid: 2e431b10ba6092d438438fa850f848ee, type: 3}
+  exitPrefab: {fileID: 1567506778191067635, guid: da8f09b1ab4be7d4b9b78cf9d102a9b0, type: 3}
   healthBar: {fileID: 1571982281}
   deathPanel: {fileID: 1194912835}
   pointsText: {fileID: 1534337375}

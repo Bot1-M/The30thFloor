@@ -15,6 +15,7 @@ TagManager:
   - Chest
   - SpawnPointText
   - DeathPanel
+  - ExitCombat
   layers:
   - Default
   - TransparentFX

@@ -31,7 +31,7 @@ public class SlimeEnemy : MonoBehaviour
             Time.timeScale = 0f; // Pausar el juego
             Debug.Log("Distancia alcanzada, cambiando a escena Fighting");
             FindFirstObjectByType<SceneTransitionManager>().FadeToScene("Fighting");
-            player.GetComponent<PlayerTacticalController>().enabled = false; // Desactivar el controlador del jugador
+            //player.GetComponent<PlayerTacticalController>().enabled = false; // Desactivar el controlador del jugador
         }
     }
 

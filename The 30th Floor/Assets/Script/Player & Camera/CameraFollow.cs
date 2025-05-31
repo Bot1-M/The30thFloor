@@ -13,8 +13,11 @@ public class CameraFollow : MonoBehaviour
         this.player = player;
 
         // Set the initial position of the camera to match the player's position
-        Vector3 initialPosition = new Vector3(player.position.x, player.position.y, transform.position.z);
-        transform.position = initialPosition;
+        if (player != null)
+        {
+            Vector3 initialPosition = new Vector3(player.position.x, player.position.y, transform.position.z);
+            transform.position = initialPosition;
+        }
     }
 
     void Update()

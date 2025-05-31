@@ -6,7 +6,9 @@ public class MenuTransitionUI : MonoBehaviour
     public RectTransform mainMenuUI;
     public RectTransform inputUI;
 
-    public RectTransform Config;
+    public RectTransform configUI;
+
+    public RectTransform tutorialUI;
 
     public float slideDuration = 0.5f;
     public Vector2 offScreenPosition = new Vector2(0, -1080);
@@ -15,6 +17,9 @@ public class MenuTransitionUI : MonoBehaviour
 
     private CanvasGroup mainCanvasGroup;
     private CanvasGroup inputCanvasGroup;
+    private CanvasGroup configCanvasGroup;
+    private CanvasGroup tutorialCanvasGroup;
+
 
     private void Start()
     {
@@ -22,6 +27,8 @@ public class MenuTransitionUI : MonoBehaviour
 
         mainCanvasGroup = mainMenuUI.GetComponent<CanvasGroup>();
         inputCanvasGroup = inputUI.GetComponent<CanvasGroup>();
+        configCanvasGroup = configUI.GetComponent<CanvasGroup>();
+        tutorialCanvasGroup = tutorialUI.GetComponent<CanvasGroup>();
 
         if (mainCanvasGroup == null || inputCanvasGroup == null)
         {
@@ -38,7 +45,20 @@ public class MenuTransitionUI : MonoBehaviour
         mainCanvasGroup.interactable = true;
         mainCanvasGroup.blocksRaycasts = true;
 
+        configUI.anchoredPosition = offScreenPosition;
+        configCanvasGroup.alpha = 0;
+        configCanvasGroup.interactable = false;
+        configCanvasGroup.blocksRaycasts = false;
+
+        tutorialUI.anchoredPosition = offScreenPosition;
+        tutorialCanvasGroup.alpha = 0;
+        tutorialCanvasGroup.interactable = false;
+        tutorialCanvasGroup.blocksRaycasts = false;
+
+
+        configUI.gameObject.SetActive(false);
         inputUI.gameObject.SetActive(false);
+        tutorialUI.gameObject.SetActive(false);
     }
 
     public void StartGameTransition()
@@ -46,9 +66,29 @@ public class MenuTransitionUI : MonoBehaviour
         StartCoroutine(SlideAndFade(mainMenuUI, inputUI, mainCanvasGroup, inputCanvasGroup, false));
     }
 
-    public void BackToMenuTransition()
+    public void GameBackToMenuTransition()
     {
         StartCoroutine(SlideAndFade(inputUI, mainMenuUI, inputCanvasGroup, mainCanvasGroup, true));
+    }
+
+    public void ConfigTransition()
+    {
+        StartCoroutine(SlideAndFade(mainMenuUI, configUI, mainCanvasGroup, configCanvasGroup, false));
+    }
+    public void ConfigBackToMenuTransition()
+    {
+        StartCoroutine(SlideAndFade(configUI, mainMenuUI, configCanvasGroup, mainCanvasGroup, true));
+    }
+
+
+    public void TutorialTransition()
+    {
+        StartCoroutine(SlideAndFade(mainMenuUI, tutorialUI, mainCanvasGroup, tutorialCanvasGroup, false));
+    }
+
+    public void TutorialBackToMenuTransition()
+    {
+        StartCoroutine(SlideAndFade(tutorialUI, mainMenuUI, configCanvasGroup, mainCanvasGroup, true));
     }
 
     private IEnumerator SlideAndFade(RectTransform fromUI, RectTransform toUI, CanvasGroup fromGroup, CanvasGroup toGroup, bool isBack)

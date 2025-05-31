@@ -39,6 +39,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (playerInput != null)
         {
+            Instance.GetComponent<SpriteRenderer>().enabled = true;
             playerInput.DeactivateInput(); // asegura que se desactiva correctamente
             playerInput.ActivateInput();   // vuelve a activarlo (rehace pairing)
         }

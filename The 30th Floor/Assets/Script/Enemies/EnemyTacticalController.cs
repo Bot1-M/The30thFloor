@@ -81,6 +81,7 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
     public void TakeDamage(int amount)
     {
         health -= amount;
+        AudioManager.Instance.PlaySFX("slimeHit");
         if (health <= 0)
         {
             board.SetOccupied(currentCell, null);
@@ -130,7 +131,6 @@ public class EnemyTacticalController : MonoBehaviour, ITurnTaker
             if (animator != null)
             {
                 animator.SetTrigger("Attack");
-                AudioManager.Instance.PlaySFX("hitSound");
             }
             yield return new WaitForSeconds(0.3f); // tiempo para que se vea el ataque
 

@@ -3,82 +3,98 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] private float moveSpeed = 5f;
+    private Rigidbody2D rb;
+    private Vector2 moveInput;
+    private float horizontalInput;
+    private bool facingRight = true;
 
-    [SerializeField]
-    private float moveSpeed = 5f; // Speed of the player movement
+    [Header("Menu de pausa")]
+    [SerializeField] private GameObject pauseMenu;
 
-    private Rigidbody2D rb; // Reference to the Rigidbody2D component
-
-    private Vector2 moveInput; // Input vector for movement
-
-
-    float horizontalInput; // Variable to store horizontal input
-
-    bool facingRight = true; // Boolean to check if the player is facing right
+    private bool isPaused = false;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
     }
+
     public void Init()
     {
-        rb = GetComponent<Rigidbody2D>(); // Get the Rigidbody2D component attached to the player GameObject
-        SpawnPlayer(); // Call the SpawnPlayer method to set the initial position of the player
+        rb = GetComponent<Rigidbody2D>();
+        SpawnPlayer();
     }
 
     void Update()
     {
         if (rb == null) return;
 
-        horizontalInput = Input.GetAxis("Horizontal"); // Get horizontal input from the keyboard (A/D or Left/Right Arrow keys)
-        rb.linearVelocity = moveInput * moveSpeed; // Set the horizontal velocity based on input and speed
-        MirrorPlayer();
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            TogglePauseMenu();
+        }
 
-
+        if (!isPaused)
+        {
+            horizontalInput = Input.GetAxis("Horizontal");
+            rb.linearVelocity = moveInput * moveSpeed;
+            MirrorPlayer();
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
     }
 
     public void Move(InputAction.CallbackContext context)
     {
-        if (context.canceled) // Check if the input action is canceled
+        if (isPaused) return;
+
+        if (context.canceled)
         {
-            AudioManager.Instance.StopWalkingSound(); // Stop the walking sound
-            PlayerManager.Instance.animator.SetBool("isWalking", false); // Set the walking animation to false
+            AudioManager.Instance.StopWalkingSound();
+            PlayerManager.Instance.animator.SetBool("isWalking", false);
         }
         else
         {
-            AudioManager.Instance.PlayWalkingSound();
-            PlayerManager.Instance.animator.SetBool("isWalking", true); // Set the walking animation to true
+            AudioManager.Instance.StartWalkingSound();
+            PlayerManager.Instance.animator.SetBool("isWalking", true);
         }
-        moveInput = context.ReadValue<Vector2>(); // Read the input value from the context and assign it to moveInput
+
+        moveInput = context.ReadValue<Vector2>();
     }
 
     private void MirrorPlayer()
     {
-        if (horizontalInput < 0 && facingRight) // Check if the horizontal input moving left
-        {
+        if (horizontalInput < 0 && facingRight && transform.localScale.x > 0)
             Flip();
-        }
-        else if (horizontalInput > 0 && !facingRight) // Check if the horizontal input moving right
-        {
+        else if (horizontalInput > 0 && !facingRight && transform.localScale.x < 0)
             Flip();
-        }
     }
 
     void Flip()
     {
-        Vector3 currentScale = transform.localScale; // Get the current scale of the player
-        currentScale.x *= -1; // Flip the x scale to mirror the player
-        transform.localScale = currentScale; // Apply the new scale to the player
-        facingRight = !facingRight; // Toggle the facing direction
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+        facingRight = !facingRight;
     }
 
     private void SpawnPlayer()
     {
-        // Spawn the player at the start position of the dungeon
-        Vector3 spawnPosition = new Vector3(0, 0, 0); // Replace with your desired spawn position
-        transform.position = spawnPosition; // Set the player's position to the spawn position
+        transform.position = Vector3.zero;
+    }
 
+    private void TogglePauseMenu()
+    {
+        isPaused = !isPaused;
 
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetActive(isPaused);
+        }
+
+        Time.timeScale = isPaused ? 0f : 1f;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -99,5 +115,5 @@ public class PlayerController : MonoBehaviour
             PlayerManager.Instance.explorationController.Init();
         }
     }
-
 }
+

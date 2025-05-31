@@ -1,5 +1,4 @@
 using TMPro;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -20,20 +19,29 @@ public class MenuInicial : MonoBehaviour
         //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1); // Cambia "Juego" por el nombre de tu escena de juego
     }
 
-    public void comebackToMenu()
+    public void comebackToMenuFromStartGame()
     {
-        transitionUI.BackToMenuTransition();
+        transitionUI.GameBackToMenuTransition();
         //SceneManager.LoadScene("MenuPrincipal"); // Cambia "MenuPrincipal" por el nombre de tu escena de menú principal
+    }
+
+    public void comebackToMenuFromConfig()
+    {
+        transitionUI.ConfigBackToMenuTransition();
+    }
+    public void comebackToMenuFromTutorial()
+    {
+        transitionUI.TutorialBackToMenuTransition();
     }
 
     public void configuracion()
     {
-        Debug.Log("Configuración no implementada aún");
+        transitionUI.ConfigTransition();
     }
 
     public void tutorial()
     {
-        Debug.Log("Tutorial no implementado aún");
+        transitionUI.TutorialTransition();
     }
     public void salir()
     {
