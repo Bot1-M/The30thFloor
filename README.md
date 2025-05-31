@@ -20,6 +20,7 @@
 
 Assets/
 │
+
 ├── Data/ → ScriptableObjects (enemigos, parámetros)
 
 ├── DungeonProceduralGeneration/ → Lógica de generación procedural
