@@ -11,9 +11,16 @@ public abstract class AbstractDungeonGenerator : MonoBehaviour
 
     public void GenerateDungeon()
     {
+        if (tilemapVisualizer == null)
+        {
+            Debug.LogWarning("TilemapVisualizer ya destruido, no se puede generar dungeon.");
+            return;
+        }
+
         tilemapVisualizer.Clear();
         RunProceduralGeneration();
     }
+
 
     protected abstract void RunProceduralGeneration();
 

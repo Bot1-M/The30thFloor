@@ -1,81 +1,142 @@
+using JetBrains.Annotations;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
+    [SerializeField] private float moveSpeed = 5f;
+    private Rigidbody2D rb;
+    private Vector2 moveInput;
+    private float horizontalInput;
+    private bool facingRight = true;
 
-    [SerializeField]
-    private float moveSpeed = 5f; // Speed of the player movement
 
-    private Rigidbody2D rb; // Reference to the Rigidbody2D component
+    [Header("Menu de pausa")]
+    public GameObject pauseMenu;
 
-    private Vector2 moveInput; // Input vector for movement
+    private bool isPaused = false;
 
-    private Animator animator;
-
-    float horizontalInput; // Variable to store horizontal input
-    float verticalInput; // Variable to store vertical input
-
-    bool facingRight = true; // Boolean to check if the player is facing right
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
 
     public void Init()
     {
-        rb = GetComponent<Rigidbody2D>(); // Get the Rigidbody2D component attached to the player GameObject
-        animator = GetComponent<Animator>(); // Get the Animator component attached to the player GameObject
-        SpawnPlayer(); // Call the SpawnPlayer method to set the initial position of the player
+        rb = GetComponent<Rigidbody2D>();
+        ResetVisualDefaults();
+        MirrorPlayer();
+        SpawnPlayer();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        horizontalInput = Input.GetAxis("Horizontal"); // Get horizontal input from the keyboard (A/D or Left/Right Arrow keys)
-        verticalInput = Input.GetAxis("Vertical"); // Get vertical input from the keyboard (W/S or Up/Down Arrow keys)
-        rb.linearVelocity = moveInput * moveSpeed; // Set the horizontal velocity based on input and speed
-        MirrorPlayer();
+        if (rb == null) return;
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            TogglePauseMenu();
+        }
+
+        if (!isPaused)
+        {
+            horizontalInput = Input.GetAxis("Horizontal");
+            rb.linearVelocity = moveInput * moveSpeed;
+            MirrorPlayer();
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
     }
 
     public void Move(InputAction.CallbackContext context)
     {
-        if (context.canceled) // Check if the input action is canceled
+        if (isPaused) return;
+
+        if (context.canceled)
         {
-            animator.SetBool("isWalking", false); // Set the walking animation to false
+            AudioManager.Instance.StopWalkingSound();
+            PlayerManager.Instance.animator.SetBool("isWalking", false);
         }
         else
         {
-            animator.SetBool("isWalking", true); // Set the walking animation to true
+            AudioManager.Instance.StartWalkingSound();
+            PlayerManager.Instance.animator.SetBool("isWalking", true);
         }
-        moveInput = context.ReadValue<Vector2>(); // Read the input value from the context and assign it to moveInput
+
+        moveInput = context.ReadValue<Vector2>();
     }
 
     private void MirrorPlayer()
     {
-        if (horizontalInput < 0 && facingRight) // Check if the horizontal input moving left
-        {
+        if (horizontalInput < 0 && facingRight && transform.localScale.x > 0)
             Flip();
-        }
-        else if (horizontalInput > 0 && !facingRight) // Check if the horizontal input moving right
-        {
+        else if (horizontalInput > 0 && !facingRight && transform.localScale.x < 0)
             Flip();
-        }
     }
 
     void Flip()
     {
-        Vector3 currentScale = transform.localScale; // Get the current scale of the player
-        currentScale.x *= -1; // Flip the x scale to mirror the player
-        transform.localScale = currentScale; // Apply the new scale to the player
-        facingRight = !facingRight; // Toggle the facing direction
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+        facingRight = !facingRight;
     }
 
     private void SpawnPlayer()
     {
-        // Spawn the player at the start position of the dungeon
-        Vector3 spawnPosition = new Vector3(0, 0, 0); // Replace with your desired spawn position
-        transform.position = spawnPosition; // Set the player's position to the spawn position
-
-
+        transform.position = Vector3.zero;
     }
-    
+
+    private void TogglePauseMenu()
+    {
+        isPaused = !isPaused;
+
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetActive(isPaused);
+        }
+
+        Time.timeScale = isPaused ? 0f : 1f;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Coin"))
+        {
+            Destroy(collision.gameObject);
+            AudioManager.Instance.PlaySFX("pointsAdded");
+            PlayerManager.Instance.Data.totalPoints += 100;
+            Debug.Log("Total Points: " + PlayerManager.Instance.Data.totalPoints);
+        }
+
+        if (collision.gameObject.CompareTag("Finish"))
+        {
+            GameManager.Instance.AdvanceToNextLevel();
+        }
+    }
+
+    public void setPause(GameObject pause)
+    {
+        pauseMenu = pause;
+    }
+
+    public void ResetVisualDefaults()
+    {
+        // Forzar rotación a 0
+        transform.rotation = Quaternion.identity;
+
+        // Forzar escala a 0.4 (derecha por defecto)
+        Vector3 defaultScale = new Vector3(0.4f, 0.4f, 0.4f);
+        transform.localScale = defaultScale;
+
+        // Set facingRight en base a la escala
+        facingRight = transform.localScale.x > 0;
+
+        Debug.Log("Visuales del jugador reiniciados: rotación 0, escala 0.4, facingRight=" + facingRight);
+    }
+
 }
+
