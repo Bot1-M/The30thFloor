@@ -837,7 +837,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0fdd299edd03e74da532455b0c96fef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioMixer: {fileID: 24100000, guid: ccdceb1129484d0498663467ffab427e, type: 2}
   resolutionDropdown: {fileID: 1185719043}
 --- !u!1 &535458456
 GameObject:
@@ -1155,8 +1154,8 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: -0.32685184
-    width: 0.4322917
+    y: 0
+    width: 1
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -4276,6 +4275,14 @@ PrefabInstance:
       propertyPath: m_MinValue
       value: -40
       objectReference: {fileID: 0}
+    - target: {fileID: 1321828244741819712, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 1321828244741819712, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetMusicVolume
+      objectReference: {fileID: 0}
     - target: {fileID: 1437860951627373200, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -4360,6 +4367,14 @@ PrefabInstance:
       propertyPath: m_MinValue
       value: -40
       objectReference: {fileID: 0}
+    - target: {fileID: 2350222130668718637, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 2350222130668718637, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetVolume
+      objectReference: {fileID: 0}
     - target: {fileID: 2604571660993182771, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_Name
       value: PauseMenuPanel
@@ -4379,6 +4394,14 @@ PrefabInstance:
     - target: {fileID: 3774762206533159327, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: FightingSceneManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 4965924841648772488, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 4965924841648772488, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetFullscreen
       objectReference: {fileID: 0}
     - target: {fileID: 5009883456960522091, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMax.y
@@ -4411,6 +4434,14 @@ PrefabInstance:
     - target: {fileID: 5243214044395514728, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0.6666667
+      objectReference: {fileID: 0}
+    - target: {fileID: 5569726430887842249, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 5569726430887842249, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetResolution
       objectReference: {fileID: 0}
     - target: {fileID: 5740572698545165366, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMax.x
@@ -4516,6 +4547,14 @@ PrefabInstance:
       propertyPath: m_MinValue
       value: -40
       objectReference: {fileID: 0}
+    - target: {fileID: 8445055943852339263, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 8445055943852339263, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetSFXVolume
+      objectReference: {fileID: 0}
     - target: {fileID: 8495898210999905667, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0.6666667
@@ -4539,6 +4578,14 @@ PrefabInstance:
     - target: {fileID: 8743329342089463704, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMin.y
       value: 0.0022013318
+      objectReference: {fileID: 0}
+    - target: {fileID: 9045416539593915024, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 486724818}
+    - target: {fileID: 9045416539593915024, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetQuality
       objectReference: {fileID: 0}
     - target: {fileID: 9066412694587274870, guid: 1c65adb6b78ddd140802c335a28e9f08, type: 3}
       propertyPath: m_AnchorMax.y
